@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" spacing="30.0" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="org.example.projeto_javafx.controllers.PerfilController" prefWidth="500.0" prefHeight="400.0">
+    <padding>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0"/>
+    </padding>
+
+    <!-- Título de Boas-vindas -->
+    <Label text="Bem-vindo!" styleClass="welcome-title">
+        <font>
+            <Font name="System Bold" size="24.0"/>
+        </font>
+    </Label>
+
+    <!-- Mensagem de sucesso -->
+    <Label text="Cadastro realizado com sucesso!" styleClass="success-message">
+        <font>
+            <Font size="16.0"/>
+        </font>
+    </Label>
+
+    <!-- Informações do usuário -->
+    <VBox spacing="10.0" alignment="CENTER">
+        <Label text="Dados cadastrados:" styleClass="section-title">
+            <font>
+                <Font name="System Bold" size="14.0"/>
+            </font>
+        </Label>
+
+        <GridPane hgap="15.0" vgap="10.0" alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints/>
+                <ColumnConstraints/>
+            </columnConstraints>
+
+            <Label text="Nome:" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="info-label"/>
+            <Label fx:id="nomeLabel" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="info-value"/>
+
+            <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="info-label"/>
+            <Label fx:id="emailLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="info-value"/>
+
+            <Label text="Telefone:" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="info-label"/>
+            <Label fx:id="telefoneLabel" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="info-value"/>
+        </GridPane>
+    </VBox>
+
+    <!-- Botões de navegação -->
+    <HBox spacing="20.0" alignment="CENTER">
+        <Button text="Novo Cadastro" onAction="#onNovoCadastroClick"
+                styleClass="primary-button" prefWidth="140.0"/>
+        <Button text="Sair" onAction="#onSairClick"
+                styleClass="secondary-button" prefWidth="100.0"/>
+    </HBox>
+
+</VBox>
