@@ -2,9 +2,7 @@ package org.example.projeto_javafx.controllers;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
@@ -12,9 +10,7 @@ import javafx.stage.Stage;
 import org.example.projeto_javafx.entidades.arquivo.UserFile;
 import org.example.projeto_javafx.entidades.user.User;
 
-import java.io.IOException;
-
-public class HelloController {
+public class EditController {
 
     @FXML
     private TextField nomeField;
@@ -28,71 +24,75 @@ public class HelloController {
     @FXML
     private Label mensagemLabel;
 
+    private User usuarioOriginal;
+    private PerfilController perfilController;
+
+    public void setUsuario(User usuario, PerfilController perfilController) {
+        this.usuarioOriginal = usuario;
+        this.perfilController = perfilController;
+        
+        // Preencher os campos com os dados atuais
+        nomeField.setText(usuario.getNome());
+        emailField.setText(usuario.getEmail());
+        telefoneField.setText(usuario.getTelefone());
+        
+        configurarFormatacaoTelefone();
+    }
+
     @FXML
-    protected void onCadastrarButtonClick(ActionEvent event) {
+    protected void onSalvarClick(ActionEvent event) {
         if (validarCampos()) {
             try {
-                // Obter os dados dos campos
-                String nome = nomeField.getText().trim();
-                String email = emailField.getText().trim();
-                String telefone = telefoneField.getText().trim();
+                String novoNome = nomeField.getText().trim();
+                String novoEmail = emailField.getText().trim();
+                String novoTelefone = telefoneField.getText().trim();
 
-                // Verificar se o usuário já existe
-                if (UserFile.verificarUsuarioExistente(email)) {
-                    mensagemLabel.setText("Usuário com este email já existe!");
+                // Verificar se o email já existe (exceto se for o mesmo usuário)
+                if (!novoEmail.equals(usuarioOriginal.getEmail()) && 
+                    UserFile.verificarUsuarioExistente(novoEmail)) {
+                    mensagemLabel.setText("Email já está em uso por outro usuário!");
                     mensagemLabel.setTextFill(Color.RED);
                     return;
                 }
 
-                // Criar novo usuário e salvar
-                User novoUsuario = new User(nome, email, telefone);
-                UserFile.adicionarPessoa(novoUsuario);
-
-                // Carregar a tela de perfil
-                FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/org/example/projeto_javafx/perfil-view.fxml"));
-                Scene scene = new Scene(fxmlLoader.load(), 600, 500);
-
-                // Obter o controller da tela de perfil e passar os dados
-                PerfilController perfilController = fxmlLoader.getController();
-                perfilController.setDadosUsuario(nome, email, telefone);
-
-                // Obter o stage atual e trocar a cena
+                // Atualizar o usuário
+                UserFile.editarUsuario(usuarioOriginal.getEmail(), novoNome, novoEmail, novoTelefone);
+                
+                // Atualizar a lista no controller do perfil
+                perfilController.atualizarLista();
+                
+                // Fechar a modal
                 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                stage.setTitle("Dashboard - Sistema de Cadastro");
-                stage.setScene(scene);
+                stage.close();
 
-            } catch (IOException e) {
-                mensagemLabel.setText("Erro ao carregar a próxima tela: " + e.getMessage());
+            } catch (Exception e) {
+                mensagemLabel.setText("Erro ao salvar: " + e.getMessage());
                 mensagemLabel.setTextFill(Color.RED);
-                e.printStackTrace();
             }
         }
     }
 
     @FXML
-    protected void onLimparButtonClick() {
-        limparCampos();
-        mensagemLabel.setText("");
+    protected void onCancelarClick(ActionEvent event) {
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.close();
     }
 
     private boolean validarCampos() {
         StringBuilder erros = new StringBuilder();
 
-        // Validar nome
         if (nomeField.getText().trim().isEmpty()) {
             erros.append("• Nome é obrigatório\n");
         } else if (nomeField.getText().trim().length() < 2) {
             erros.append("• Nome deve ter pelo menos 2 caracteres\n");
         }
 
-        // Validar email
         if (emailField.getText().trim().isEmpty()) {
             erros.append("• Email é obrigatório\n");
         } else if (!isEmailValido(emailField.getText().trim())) {
             erros.append("• Email deve ter um formato válido\n");
         }
 
-        // Validar telefone
         if (telefoneField.getText().trim().isEmpty()) {
             erros.append("• Telefone é obrigatório\n");
         } else if (!isTelefoneValido(telefoneField.getText().trim())) {
@@ -117,14 +117,7 @@ public class HelloController {
         return apenasNumeros.length() >= 10 && apenasNumeros.length() <= 11;
     }
 
-    private void limparCampos() {
-        nomeField.clear();
-        emailField.clear();
-        telefoneField.clear();
-    }
-
-    @FXML
-    private void initialize() {
+    private void configurarFormatacaoTelefone() {
         telefoneField.textProperty().addListener((observable, oldValue, newValue) -> {
             String apenasNumeros = newValue.replaceAll("\\D", "");
 

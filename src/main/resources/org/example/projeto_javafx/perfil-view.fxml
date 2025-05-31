@@ -6,7 +6,7 @@
 <?import javafx.scene.text.Font?>
 
 <VBox alignment="CENTER" spacing="30.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="org.example.projeto_javafx.controllers.PerfilController" prefWidth="500.0" prefHeight="400.0">
+      fx:controller="org.example.projeto_javafx.controllers.PerfilController" prefWidth="600.0" prefHeight="500.0">
     <padding>
         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0"/>
     </padding>
@@ -25,9 +25,9 @@
         </font>
     </Label>
 
-    <!-- Informações do usuário -->
+    <!-- Informações do último usuário cadastrado -->
     <VBox spacing="10.0" alignment="CENTER">
-        <Label text="Dados cadastrados:" styleClass="section-title">
+        <Label text="Último usuário cadastrado:" styleClass="section-title">
             <font>
                 <Font name="System Bold" size="14.0"/>
             </font>
@@ -50,8 +50,21 @@
         </GridPane>
     </VBox>
 
+    <!-- Lista de todos os usuários -->
+    <VBox spacing="10.0" alignment="CENTER">
+        <Label text="Todos os usuários cadastrados:" styleClass="section-title">
+            <font>
+                <Font name="System Bold" size="14.0"/>
+            </font>
+        </Label>
+        
+        <ListView fx:id="usuariosListView" prefHeight="150.0" prefWidth="500.0"/>
+    </VBox>
+
     <!-- Botões de navegação -->
     <HBox spacing="20.0" alignment="CENTER">
+        <Button text="Editar Selecionado" onAction="#onEditarUsuarioClick"
+                styleClass="primary-button" prefWidth="140.0"/>
         <Button text="Novo Cadastro" onAction="#onNovoCadastroClick"
                 styleClass="primary-button" prefWidth="140.0"/>
         <Button text="Sair" onAction="#onSairClick"
