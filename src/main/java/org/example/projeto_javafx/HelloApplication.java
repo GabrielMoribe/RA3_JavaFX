@@ -16,7 +16,7 @@ public class HelloApplication extends Application {
         
         stage.setTitle("Sistema de Cadastro");
         stage.setScene(scene);
-        stage.setResizable(false); // Impede redimensionamento
+        stage.setResizable(false); // Impede redimensionamento ?????
         stage.show();
     }
 

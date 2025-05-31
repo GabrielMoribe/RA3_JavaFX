@@ -34,7 +34,7 @@ public class PerfilController implements Initializable {
     @FXML
     private ListView<String> usuariosListView;
 
-    // Dados do usuário que serão passados da tela anterior
+    // DADOS PRINTADOS NA TELA
     private String nomeUsuario;
     private String emailUsuario;
     private String telefoneUsuario;
@@ -44,7 +44,7 @@ public class PerfilController implements Initializable {
         carregarListaUsuarios();
     }
 
-    // Método para definir os dados do último usuário cadastrado
+    // SETTAR OS DADOS DO ULTIMO USUARIO CADASTRADO
     public void setDadosUsuario(String nome, String email, String telefone) {
         this.nomeUsuario = nome;
         this.emailUsuario = email;
@@ -56,6 +56,7 @@ public class PerfilController implements Initializable {
         telefoneLabel.setText(telefone);
     }
 
+    //CHAMA lerLista() PARA LISTAR TODOS OS USUARIOS CADASTRADOS
     private void carregarListaUsuarios() {
         try {
             ArrayList<User> usuarios = UserFile.lerLista();
@@ -78,7 +79,7 @@ public class PerfilController implements Initializable {
     @FXML
     protected void onNovoCadastroClick(ActionEvent event) {
         try {
-            // Carregar a tela de cadastro novamente
+            //CHAMA UMA NOVA TELA DE CADASTRO
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/org/example/projeto_javafx/hello-view.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 450, 600);
 
@@ -143,5 +144,40 @@ public class PerfilController implements Initializable {
 
     public void atualizarLista() {
         carregarListaUsuarios();
+    }
+
+    @FXML
+    protected void onDeletarUsuarioClick(ActionEvent event) {
+        String selectedItem = usuariosListView.getSelectionModel().getSelectedItem();
+        
+        if (selectedItem == null) {
+            System.out.println("Selecione um usuário para deletar");
+            return;
+        }
+        
+        // Extrair o email do item selecionado
+        String[] partes = selectedItem.split(" - ");
+        if (partes.length >= 2) {
+            String email = partes[1];
+            String nome = partes[0];
+            
+            // Confirmar a exclusão
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirmar Exclusão");
+            alert.setHeaderText("Deletar Usuário");
+            alert.setContentText("Tem certeza que deseja deletar o usuário " + nome + "?");
+            
+            alert.showAndWait().ifPresent(response -> {
+                if (response == javafx.scene.control.ButtonType.OK) {
+                    boolean deletado = UserFile.deletarUsuario(email);
+                    if (deletado) {
+                        System.out.println("Usuário deletado com sucesso!");
+                        atualizarLista(); // Atualizar a lista na tela
+                    } else {
+                        System.out.println("Erro ao deletar usuário");
+                    }
+                }
+            });
+        }
     }
 }

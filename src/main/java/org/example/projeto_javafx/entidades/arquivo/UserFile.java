@@ -25,7 +25,7 @@ public class UserFile {
         }
     }
 
-    // Lê a lista de usuários do arquivo
+    // LE A LISTA NO ARQUIVO "users.dat"
     public static ArrayList<User> lerLista() {
         ArrayList<User> lista_usuarios = new ArrayList<>();
 
@@ -64,9 +64,10 @@ public class UserFile {
                 .anyMatch(user -> user.getEmail().equals(email));
     }
 
+    //RECEBE A LISTA DA FUNÇÃO lerLista()
     public static void editarUsuario(String emailOriginal, String novoNome, String novoEmail, String novoTelefone) {
         ArrayList<User> lista_usuarios = lerLista();
-        
+
         for (User user : lista_usuarios) {
             if (user.getEmail().equals(emailOriginal)) {
                 user.setNome(novoNome);
@@ -75,15 +76,28 @@ public class UserFile {
                 break;
             }
         }
-        
+
         salvarLista(lista_usuarios);
     }
 
+    //CHAMADO/USADO PELO MODAL DE EDITAR USUARIO
     public static User buscarUsuarioPorEmail(String email) {
         ArrayList<User> lista_usuarios = lerLista();
         return lista_usuarios.stream()
                 .filter(user -> user.getEmail().equals(email))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public static boolean deletarUsuario(String email) {
+        ArrayList<User> lista_usuarios = lerLista();
+        
+        boolean removido = lista_usuarios.removeIf(user -> user.getEmail().equals(email));
+        
+        if (removido) {
+            salvarLista(lista_usuarios);
+        }
+        
+        return removido;
     }
 }

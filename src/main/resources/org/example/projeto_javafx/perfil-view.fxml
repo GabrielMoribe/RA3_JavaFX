@@ -11,21 +11,21 @@
         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0"/>
     </padding>
 
-    <!-- Título de Boas-vindas -->
+    <!-- TITULO -->
     <Label text="Bem-vindo!" styleClass="welcome-title">
         <font>
             <Font name="System Bold" size="24.0"/>
         </font>
     </Label>
 
-    <!-- Mensagem de sucesso -->
+    <!-- MSG Sucesso -->
     <Label text="Cadastro realizado com sucesso!" styleClass="success-message">
         <font>
             <Font size="16.0"/>
         </font>
     </Label>
 
-    <!-- Informações do último usuário cadastrado -->
+    <!-- Ultimo usuario cadastrado -->
     <VBox spacing="10.0" alignment="CENTER">
         <Label text="Último usuário cadastrado:" styleClass="section-title">
             <font>
@@ -61,10 +61,12 @@
         <ListView fx:id="usuariosListView" prefHeight="150.0" prefWidth="500.0"/>
     </VBox>
 
-    <!-- Botões de navegação -->
+    <!-- BOTOES -->
     <HBox spacing="20.0" alignment="CENTER">
         <Button text="Editar Selecionado" onAction="#onEditarUsuarioClick"
                 styleClass="primary-button" prefWidth="140.0"/>
+        <Button text="Deletar Selecionado" onAction="#onDeletarUsuarioClick"
+                styleClass="danger-button" prefWidth="140.0"/>
         <Button text="Novo Cadastro" onAction="#onNovoCadastroClick"
                 styleClass="primary-button" prefWidth="140.0"/>
         <Button text="Sair" onAction="#onSairClick"
