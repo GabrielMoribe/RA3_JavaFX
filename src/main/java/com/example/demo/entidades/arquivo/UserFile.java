@@ -1,6 +1,7 @@
-package org.example.projeto_javafx.entidades.arquivo;
 
-import org.example.projeto_javafx.entidades.user.User;
+package com.example.demo.entidades.arquivo;
+
+import com.example.demo.entidades.User;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -9,18 +10,19 @@ public class UserFile {
 
     private static final String CAMINHO_ARQUIVO = "Data/users.dat";
 
-    //SALVA A LISTA NO ARQUIVO "users.dat"
+    // SALVA A LISTA NO ARQUIVO "users.dat"
     public static void salvarLista(ArrayList<User> lista_usuarios) {
         try {
             File arq = new File(CAMINHO_ARQUIVO);
             if (!arq.exists()) {
+                arq.getParentFile().mkdirs();
                 arq.createNewFile();
             }
             try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(arq))) {
                 oos.writeObject(lista_usuarios);
             }
         } catch (IOException e) {
-            System.err.println("Erro ao salvar lista: " + e.getMessage());
+            System.err.println("Erro ao salvar lista de usuários: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -37,7 +39,7 @@ public class UserFile {
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Erro ao ler lista: " + e.getMessage());
+            System.err.println("Erro ao ler lista de usuários: " + e.getMessage());
             e.printStackTrace();
         }
         return lista_usuarios;
@@ -46,7 +48,7 @@ public class UserFile {
     public static void adicionarPessoa(User newUser) {
         ArrayList<User> lista_usuarios = lerLista();
 
-        //VERIFICA SE O EMAIL JA ESTA CADASTRADO
+        // VERIFICA SE O EMAIL JA ESTA CADASTRADO
         boolean usuarioExiste = lista_usuarios.stream()
                 .anyMatch(user -> user.getEmail().equals(newUser.getEmail()));
 
@@ -64,7 +66,6 @@ public class UserFile {
                 .anyMatch(user -> user.getEmail().equals(email));
     }
 
-    //RECEBE A LISTA DA FUNÇÃO lerLista()
     public static void editarUsuario(String emailOriginal, String novoNome, String novoEmail, String novoTelefone) {
         ArrayList<User> lista_usuarios = lerLista();
 
@@ -80,7 +81,6 @@ public class UserFile {
         salvarLista(lista_usuarios);
     }
 
-    //CHAMADO/USADO PELO MODAL DE EDITAR USUARIO
     public static User buscarUsuarioPorEmail(String email) {
         ArrayList<User> lista_usuarios = lerLista();
         return lista_usuarios.stream()
@@ -91,13 +91,13 @@ public class UserFile {
 
     public static boolean deletarUsuario(String email) {
         ArrayList<User> lista_usuarios = lerLista();
-        
+
         boolean removido = lista_usuarios.removeIf(user -> user.getEmail().equals(email));
-        
+
         if (removido) {
             salvarLista(lista_usuarios);
         }
-        
+
         return removido;
     }
 }
