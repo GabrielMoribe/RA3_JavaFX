@@ -16,13 +16,13 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage palcoPrincipal) {
-        palcoPrincipal.setTitle("Gerenciador de Músicas, Álbuns e Usuários");
+        palcoPrincipal.setTitle("Trabalho RA3-JavaFX");
 
         TabPane painelDeAbas = new TabPane();
 
         Tab abaUsuarios = new Tab("Usuários");
-        abaUsuarios.setClosable(false);
-        abaUsuarios.setContent(UserUI.criarPainelCrudUsuarios(catalogoService));
+        abaUsuarios.setClosable(false); //Nao da pra fechar
+        abaUsuarios.setContent(UserUI.criarPainelCrudUsuarios(catalogoService)); //Chama o metodo da UserUI
         painelDeAbas.getTabs().add(abaUsuarios);
 
         Tab abaMusicas = new Tab("Músicas");
@@ -35,7 +35,7 @@ public class MainApp extends Application {
         abaAlbuns.setContent(AlbumUI.criarPainelCrudAlbuns(catalogoService));
         painelDeAbas.getTabs().add(abaAlbuns);
 
-        Scene cenaPrincipal = new Scene(painelDeAbas, 700, 550);
+        Scene cenaPrincipal = new Scene(painelDeAbas, 500, 500);
         palcoPrincipal.setScene(cenaPrincipal);
         palcoPrincipal.show();
     }
