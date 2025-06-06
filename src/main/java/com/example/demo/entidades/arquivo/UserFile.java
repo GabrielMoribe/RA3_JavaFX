@@ -79,14 +79,6 @@ public class UserFile {
         salvarLista(lista_usuarios);
     }
 
-//    public static User buscarUsuarioPorEmail(String email) {
-//        ArrayList<User> lista_usuarios = lerLista();
-//        return lista_usuarios.stream()
-//                .filter(user -> user.getEmail().equals(email))
-//                .findFirst()
-//                .orElse(null);
-//    }
-
     public static boolean deletarUsuario(String email) {
         ArrayList<User> lista_usuarios = lerLista();
 
