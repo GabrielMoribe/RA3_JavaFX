@@ -201,6 +201,7 @@ public class AlbumUI {
         campoTitulo.requestFocus();
     }
 
+
     private static void mostrarAlerta(String titulo, String mensagem) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle(titulo);
