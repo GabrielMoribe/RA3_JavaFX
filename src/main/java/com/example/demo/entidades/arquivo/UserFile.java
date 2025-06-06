@@ -55,8 +55,6 @@ public class UserFile {
         if (!usuarioExiste) {
             lista_usuarios.add(newUser);
             salvarLista(lista_usuarios);
-        } else {
-            System.err.println("Usuário com este email já existe!");
         }
     }
 
@@ -79,14 +77,6 @@ public class UserFile {
         }
 
         salvarLista(lista_usuarios);
-    }
-
-    public static User buscarUsuarioPorEmail(String email) {
-        ArrayList<User> lista_usuarios = lerLista();
-        return lista_usuarios.stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst()
-                .orElse(null);
     }
 
     public static boolean deletarUsuario(String email) {

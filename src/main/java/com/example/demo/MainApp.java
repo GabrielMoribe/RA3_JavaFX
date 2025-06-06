@@ -18,24 +18,24 @@ public class MainApp extends Application {
     public void start(Stage palcoPrincipal) {
         palcoPrincipal.setTitle("Trabalho RA3-JavaFX");
 
-        TabPane painelDeAbas = new TabPane();
+        TabPane abas = new TabPane();
 
         Tab abaUsuarios = new Tab("Usuários");
-        abaUsuarios.setClosable(false); //Nao da pra fechar
+        abaUsuarios.setClosable(false);
         abaUsuarios.setContent(UserUI.criarPainelCrudUsuarios(catalogoService)); //Chama o metodo da UserUI
-        painelDeAbas.getTabs().add(abaUsuarios);
+        abas.getTabs().add(abaUsuarios);
 
         Tab abaMusicas = new Tab("Músicas");
         abaMusicas.setClosable(false);
         abaMusicas.setContent(MusicaUI.criarPainelCrudMusicas(catalogoService));
-        painelDeAbas.getTabs().add(abaMusicas);
+        abas.getTabs().add(abaMusicas);
 
         Tab abaAlbuns = new Tab("Álbuns");
         abaAlbuns.setClosable(false);
         abaAlbuns.setContent(AlbumUI.criarPainelCrudAlbuns(catalogoService));
-        painelDeAbas.getTabs().add(abaAlbuns);
+        abas.getTabs().add(abaAlbuns);
 
-        Scene cenaPrincipal = new Scene(painelDeAbas, 500, 500);
+        Scene cenaPrincipal = new Scene(abas, 500, 500);
         palcoPrincipal.setScene(cenaPrincipal);
         palcoPrincipal.show();
     }
