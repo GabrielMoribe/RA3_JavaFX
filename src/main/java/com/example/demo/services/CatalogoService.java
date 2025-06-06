@@ -34,6 +34,8 @@ public class CatalogoService {
         listaDeUsuarios.setAll(usuariosSalvos);
     }
 
+
+
     // Métodos para Musicas
     public ObservableList<Musica> getListaDeMusicas() {
         return listaDeMusicas;
@@ -81,13 +83,15 @@ public class CatalogoService {
         return listaDeUsuarios;
     }
 
-    public void adicionarUsuario(User usuario) {
+    public boolean adicionarUsuario(User usuario) {
         if (usuario != null && usuario.getNome() != null && !usuario.getNome().trim().isEmpty()) {
             if (!UserFile.verificarUsuarioExistente(usuario.getEmail())) {
                 listaDeUsuarios.add(usuario);
                 UserFile.adicionarPessoa(usuario);
+                return true;
             }
         }
+        return false;
     }
 
     public void excluirUsuario(User usuario) {

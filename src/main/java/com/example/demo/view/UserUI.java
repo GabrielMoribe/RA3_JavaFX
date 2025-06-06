@@ -1,6 +1,7 @@
 package com.example.demo.view;
 
 import com.example.demo.entidades.User;
+import com.example.demo.entidades.arquivo.UserFile;
 import com.example.demo.services.CatalogoService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -66,6 +67,7 @@ public class UserUI {
         // Chama o metodo configurarFormatacaoTelefone(TextField campoTelefone)
         configurarFormatacaoTelefone(campoTelefone);
 
+        // Add usuario
         botaoAdicionar.setOnAction(evento -> {
             try {
                 String nome = campoNome.getText().trim();
@@ -87,15 +89,18 @@ public class UserUI {
                     return;
                 }
 
-                catalogoService.adicionarUsuario(new User(nome, email, telefone));
+                if (!catalogoService.adicionarUsuario(new User(nome, email, telefone))){
+                    mostrarAlerta("Erro ao cadastrar usuario" , "Email já cadastrado no sistema. Tente outro email.");
+                }
+                //catalogoService.adicionarUsuario(new User(nome, email, telefone));
                 limparCamposUsuario(campoNome, campoEmail, campoTelefone);
-            } catch (Exception ex) {
-                mostrarAlerta("Erro", "Erro ao adicionar usuário: " + ex.getMessage());
+
+            } catch (Exception e) {
+                mostrarAlerta("Erro", "Erro ao adicionar usuário: " + e.getMessage());
             }
         });
 
-        botaoLimparCampos.setOnAction(evento -> limparCamposUsuario(campoNome, campoEmail, campoTelefone));
-
+        // Editar
         botaoEditar.setOnAction(evento -> {
             User usuarioSelecionado = visualizadorDeListaUsuarios.getSelectionModel().getSelectedItem();
             if (usuarioSelecionado != null) {
@@ -105,6 +110,7 @@ public class UserUI {
             }
         });
 
+        // Excluir
         botaoExcluir.setOnAction(evento -> {
             User usuarioSelecionado = visualizadorDeListaUsuarios.getSelectionModel().getSelectedItem();
             if (usuarioSelecionado != null) {
@@ -118,6 +124,9 @@ public class UserUI {
             }
         });
 
+        // Limpar campos
+        botaoLimparCampos.setOnAction(evento -> limparCamposUsuario(campoNome, campoEmail, campoTelefone));
+
         return painelPrincipalAba;
     }
 
@@ -129,18 +138,13 @@ public class UserUI {
 
         // Campos de edição
         TextField campoNomeEdicao = new TextField(usuario.getNome());
-        campoNomeEdicao.setPromptText("Nome Completo");
-        
         TextField campoEmailEdicao = new TextField(usuario.getEmail());
-        campoEmailEdicao.setPromptText("Email");
-        
         TextField campoTelefoneEdicao = new TextField(usuario.getTelefone());
-        campoTelefoneEdicao.setPromptText("(99) 99999-9999");
 
-        // Configurar formatação do telefone na modal
+        // Chama o metodo configurarFormatacaoTelefone(TextField campoTelefone)
         configurarFormatacaoTelefone(campoTelefoneEdicao);
 
-        // Formulário da modal
+        //Layout do modal
         GridPane formularioEdicao = new GridPane();
         formularioEdicao.setVgap(10);
         formularioEdicao.setHgap(10);
@@ -164,7 +168,7 @@ public class UserUI {
         // Layout principal da modal
         VBox layoutModal = new VBox(formularioEdicao, painelBotoes);
         
-        // Ações dos botões
+        // Salvar
         botaoSalvar.setOnAction(evento -> {
             try {
                 String novoNome = campoNomeEdicao.getText().trim();
@@ -200,9 +204,9 @@ public class UserUI {
                 usuario.setEmail(novoEmail);
                 usuario.setTelefone(novoTelefone);
 
-                // Salvar as alterações no arquivo usando o serviço de arquivo
-                com.example.demo.entidades.arquivo.UserFile.editarUsuario(
-                    emailOriginal, novoNome, novoEmail, novoTelefone);
+                //Chama o metodo editarUsuario(String emailOriginal, String novoNome, String novoEmail, String novoTelefone)
+                UserFile.editarUsuario(emailOriginal, novoNome, novoEmail, novoTelefone);
+
 
                 // Atualizar a lista na interface
                 catalogoService.getListaDeUsuarios().set(
@@ -218,7 +222,7 @@ public class UserUI {
 
         botaoCancelar.setOnAction(evento -> modalEdicao.close());
 
-        // Configurar e exibir a modal
+
         Scene cenaModal = new Scene(layoutModal, 350, 200);
         modalEdicao.setScene(cenaModal);
         modalEdicao.showAndWait();
