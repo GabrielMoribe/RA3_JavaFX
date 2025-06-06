@@ -1,14 +1,17 @@
 package com.example.demo.view;
 
+import com.example.demo.entidades.Album;
+import com.example.demo.services.CatalogoService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import com.example.demo.entidades.Album;
-import com.example.demo.services.CatalogoService;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.util.Optional;
 
@@ -20,6 +23,7 @@ public class AlbumUI {
 
         ListView<Album> visualizadorDeListaAlbuns = new ListView<>(catalogoService.getListaDeAlbuns());
 
+        // --- Campos de Texto do Formulário ---
         TextField campoTituloAlbum = new TextField();
         campoTituloAlbum.setPromptText("Título do Álbum");
         TextField campoArtistaPrincipal = new TextField();
@@ -29,11 +33,13 @@ public class AlbumUI {
         TextField campoGenero = new TextField();
         campoGenero.setPromptText("Gênero");
 
-
+        // --- Botões ---
         Button botaoAdicionar = new Button("Adicionar Álbum");
+        Button botaoEditar = new Button("Editar Selecionado"); // Botão de Edição Adicionado
         Button botaoExcluir = new Button("Excluir Selecionado");
         Button botaoLimparCampos = new Button("Limpar Campos");
 
+        // --- Layout do Formulário (Topo) ---
         GridPane painelFormulario = new GridPane();
         painelFormulario.setVgap(8);
         painelFormulario.setHgap(8);
@@ -46,20 +52,22 @@ public class AlbumUI {
         painelFormulario.add(new Label("Gênero:"), 0, 3);
         painelFormulario.add(campoGenero, 1, 3);
 
-
         HBox painelBotoesFormulario = new HBox(10, botaoAdicionar, botaoLimparCampos);
         painelBotoesFormulario.setAlignment(Pos.CENTER_LEFT);
 
         VBox painelSuperior = new VBox(15, painelFormulario, painelBotoesFormulario);
 
-        HBox painelBotoesLista = new HBox(10, botaoExcluir);
+        // --- Layout dos Botões de Ação da Lista (Inferior) ---
+        HBox painelBotoesLista = new HBox(10, botaoEditar, botaoExcluir); // Botão de Edição Adicionado ao Layout
         painelBotoesLista.setAlignment(Pos.CENTER_RIGHT);
 
+        // --- Organização do Painel Principal ---
         painelPrincipalAba.setTop(painelSuperior);
         painelPrincipalAba.setCenter(visualizadorDeListaAlbuns);
         painelPrincipalAba.setBottom(painelBotoesLista);
         BorderPane.setMargin(painelBotoesLista, new Insets(10, 0, 0, 0));
 
+        // --- Lógica dos Botões ---
         botaoAdicionar.setOnAction(evento -> {
             try {
                 String titulo = campoTituloAlbum.getText().trim();
@@ -80,19 +88,109 @@ public class AlbumUI {
 
         botaoLimparCampos.setOnAction(evento -> limparCamposAlbum(campoTituloAlbum, campoArtistaPrincipal, campoAnoLancamento, campoGenero));
 
+        // --- Lógica do Botão Editar ---
+        botaoEditar.setOnAction(evento -> {
+            Album albumSelecionado = visualizadorDeListaAlbuns.getSelectionModel().getSelectedItem();
+            if (albumSelecionado != null) {
+                abrirModalEdicaoAlbum(albumSelecionado, visualizadorDeListaAlbuns);
+            } else {
+                mostrarAlerta("Nenhuma Seleção", "Por favor, selecione um álbum para editar.");
+            }
+        });
+
         botaoExcluir.setOnAction(evento -> {
             Album albumSelecionado = visualizadorDeListaAlbuns.getSelectionModel().getSelectedItem();
             if (albumSelecionado != null) {
                 if (confirmarExclusao("Excluir Álbum: " + albumSelecionado.getTituloAlbum(),
                         "Tem certeza que deseja excluir este álbum?")) {
                     catalogoService.excluirAlbum(albumSelecionado);
-                    limparCamposAlbum(campoTituloAlbum, campoArtistaPrincipal, campoAnoLancamento, campoGenero);
                 }
             } else {
                 mostrarAlerta("Nenhuma Seleção", "Por favor, selecione um álbum para excluir.");
             }
         });
         return painelPrincipalAba;
+    }
+
+    private static void abrirModalEdicaoAlbum(Album albumParaEditar, ListView<Album> listView) {
+        Stage modalEdicao = new Stage();
+        modalEdicao.setTitle("Editar Álbum");
+        modalEdicao.initModality(Modality.APPLICATION_MODAL);
+        modalEdicao.setResizable(false);
+
+        // Campos de edição, preenchidos com os dados do álbum selecionado
+        TextField campoTituloEdicao = new TextField(albumParaEditar.getTituloAlbum());
+        TextField campoArtistaEdicao = new TextField(albumParaEditar.getArtistaPrincipal());
+        TextField campoAnoEdicao = new TextField(String.valueOf(albumParaEditar.getAnoLancamento()));
+        TextField campoGeneroEdicao = new TextField(albumParaEditar.getGenero());
+
+        // Formulário da modal
+        GridPane formularioEdicao = new GridPane();
+        formularioEdicao.setVgap(10);
+        formularioEdicao.setHgap(10);
+        formularioEdicao.setPadding(new Insets(20));
+
+        formularioEdicao.add(new Label("Título do Álbum:"), 0, 0);
+        formularioEdicao.add(campoTituloEdicao, 1, 0);
+        formularioEdicao.add(new Label("Artista Principal:"), 0, 1);
+        formularioEdicao.add(campoArtistaEdicao, 1, 1);
+        formularioEdicao.add(new Label("Ano Lançamento:"), 0, 2);
+        formularioEdicao.add(campoAnoEdicao, 1, 2);
+        formularioEdicao.add(new Label("Gênero:"), 0, 3);
+        formularioEdicao.add(campoGeneroEdicao, 1, 3);
+
+        // Botões da modal
+        Button botaoSalvar = new Button("Salvar");
+        Button botaoCancelar = new Button("Cancelar");
+
+        HBox painelBotoes = new HBox(10, botaoSalvar, botaoCancelar);
+        painelBotoes.setAlignment(Pos.CENTER_RIGHT);
+        painelBotoes.setPadding(new Insets(10, 20, 20, 20));
+
+        // Layout principal da modal
+        BorderPane layoutModal = new BorderPane();
+        layoutModal.setCenter(formularioEdicao);
+        layoutModal.setBottom(painelBotoes);
+
+        // Ações dos botões da modal
+        botaoSalvar.setOnAction(evento -> {
+            try {
+                String novoTitulo = campoTituloEdicao.getText().trim();
+                String novoArtista = campoArtistaEdicao.getText().trim();
+                String novoAnoStr = campoAnoEdicao.getText().trim();
+                String novoGenero = campoGeneroEdicao.getText().trim();
+
+                if (novoTitulo.isEmpty() || novoArtista.isEmpty() || novoAnoStr.isEmpty() || novoGenero.isEmpty()) {
+                    mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
+                    return;
+                }
+                int novoAno = Integer.parseInt(novoAnoStr);
+
+                // Atualiza o objeto Album original
+                albumParaEditar.setTituloAlbum(novoTitulo);
+                albumParaEditar.setArtistaPrincipal(novoArtista);
+                albumParaEditar.setAnoLancamento(novoAno);
+                albumParaEditar.setGenero(novoGenero);
+
+                // Força a atualização da ListView para refletir a mudança
+                listView.refresh();
+
+                mostrarAlerta("Sucesso", "Álbum editado com sucesso!");
+                modalEdicao.close();
+
+            } catch (NumberFormatException ex) {
+                mostrarAlerta("Erro de Formato", "O ano deve ser um número válido.");
+            } catch (Exception ex) {
+                mostrarAlerta("Erro", "Ocorreu um erro ao editar o álbum: " + ex.getMessage());
+            }
+        });
+
+        botaoCancelar.setOnAction(evento -> modalEdicao.close());
+
+        // Configurar e exibir a modal
+        Scene cenaModal = new Scene(layoutModal, 400, 250);
+        modalEdicao.setScene(cenaModal);
+        modalEdicao.showAndWait();
     }
 
     private static void limparCamposAlbum(TextField campoTitulo, TextField campoArtista, TextField campoAno, TextField campoGenero) {
