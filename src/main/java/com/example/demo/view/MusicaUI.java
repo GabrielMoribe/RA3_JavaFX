@@ -36,7 +36,7 @@ public class MusicaUI {
         // --- Botões ---
         Button botaoAdicionar = new Button("Adicionar Música");
         Button botaoEditar = new Button("Editar Selecionado"); // Botão de Edição Adicionado
-        Button botaoExcluir = new Button("Excluir Selecionada");
+        Button botaoExcluir = new Button("Excluir Selecionado");
         Button botaoLimparCampos = new Button("Limpar Campos");
 
         // --- Layout do Formulário (Topo) ---
