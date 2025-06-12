@@ -29,10 +29,11 @@ public class AlbumFile {
         ArrayList<Album> lista_albums = new ArrayList<>();
 
         try {
-            File arq = new File(CAMINHO_ARQUIVO);
-            if (arq.exists()) {
+            File arq = new File(CAMINHO_ARQUIVO);            if (arq.exists()) {
                 try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(arq))) {
-                    lista_albums = (ArrayList<Album>) ois.readObject();
+                    @SuppressWarnings("unchecked")
+                    ArrayList<Album> temp = (ArrayList<Album>) ois.readObject();
+                    lista_albums = temp;
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -76,5 +77,11 @@ public class AlbumFile {
         }
 
         return removido;
+    }
+
+    public static void excluirAlbunsDoUsuario(String emailUsuario) {
+        ArrayList<Album> lista_albums = lerLista();
+        lista_albums.removeIf(album -> emailUsuario.equals(album.getEmailProprietario()));
+        salvarLista(lista_albums);
     }
 }

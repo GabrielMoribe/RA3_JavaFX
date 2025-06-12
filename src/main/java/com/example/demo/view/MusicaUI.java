@@ -21,15 +21,21 @@ public class MusicaUI {
         BorderPane painelPrincipalAba = new BorderPane();
         painelPrincipalAba.setPadding(new Insets(10));
 
-        ListView<Musica> visualizadorDeListaMusicas = new ListView<>(catalogoService.getListaDeMusicas());
-
-        // --- Campos de Texto do Formulário ---
+        ListView<Musica> visualizadorDeListaMusicas = new ListView<>(catalogoService.getListaDeMusicas());        // --- Campos de Texto do Formulário ---
         TextField campoTituloMusica = new TextField();
         campoTituloMusica.setPromptText("Título da Música");
         TextField campoArtista = new TextField();
         campoArtista.setPromptText("Artista");
-        TextField campoNomeAlbum = new TextField();
-        campoNomeAlbum.setPromptText("Nome do Álbum");
+        
+        // ComboBox para álbuns existentes
+        ComboBox<String> comboAlbuns = new ComboBox<>();
+        comboAlbuns.setPromptText("Selecione um álbum ou digite um novo");
+        comboAlbuns.setEditable(true);
+        comboAlbuns.setPrefWidth(200);
+        
+        // Carregar álbuns do usuário logado
+        atualizarComboAlbuns(comboAlbuns, catalogoService);
+        
         TextField campoAno = new TextField();
         campoAno.setPromptText("Ano (ex: 2023)");
 
@@ -42,13 +48,12 @@ public class MusicaUI {
         // --- Layout do Formulário (Topo) ---
         GridPane painelFormulario = new GridPane();
         painelFormulario.setVgap(8);
-        painelFormulario.setHgap(8);
-        painelFormulario.add(new Label("Título:"), 0, 0);
+        painelFormulario.setHgap(8);        painelFormulario.add(new Label("Título:"), 0, 0);
         painelFormulario.add(campoTituloMusica, 1, 0);
         painelFormulario.add(new Label("Artista:"), 0, 1);
         painelFormulario.add(campoArtista, 1, 1);
         painelFormulario.add(new Label("Álbum:"), 0, 2);
-        painelFormulario.add(campoNomeAlbum, 1, 2);
+        painelFormulario.add(comboAlbuns, 1, 2);
         painelFormulario.add(new Label("Ano:"), 0, 3);
         painelFormulario.add(campoAno, 1, 3);
 
@@ -59,20 +64,28 @@ public class MusicaUI {
 
         // --- Layout dos Botões de Ação da Lista (Inferior) ---
         HBox painelBotoesLista = new HBox(10, botaoEditar, botaoExcluir); // Botão de Edição Adicionado ao Layout
-        painelBotoesLista.setAlignment(Pos.CENTER_RIGHT);
-
-        // --- Organização do Painel Principal ---
+        painelBotoesLista.setAlignment(Pos.CENTER_RIGHT);        // --- Organização do Painel Principal ---
         painelPrincipalAba.setTop(painelSuperior);
         painelPrincipalAba.setCenter(visualizadorDeListaMusicas);
         painelPrincipalAba.setBottom(painelBotoesLista);
         BorderPane.setMargin(painelBotoesLista, new Insets(10, 0, 0, 0));
 
-        // --- Lógica dos Botões ---
+        // Adicionar listener para atualizar ComboBox quando o painel for exibido
+        painelPrincipalAba.sceneProperty().addListener((observable, oldScene, newScene) -> {
+            if (newScene != null) {
+                // Atualizar lista de álbuns no ComboBox quando o painel for adicionado à cena
+                atualizarComboAlbuns(comboAlbuns, catalogoService);
+            }
+        });// --- Lógica dos Botões ---
         botaoAdicionar.setOnAction(evento -> {
             try {
                 String titulo = campoTituloMusica.getText().trim();
                 String artista = campoArtista.getText().trim();
-                String nomeAlbum = campoNomeAlbum.getText().trim();
+                String nomeAlbum = comboAlbuns.getValue();
+                
+                if (nomeAlbum == null) {
+                    nomeAlbum = comboAlbuns.getEditor().getText().trim();
+                }
 
                 if (titulo.isEmpty() || artista.isEmpty() || nomeAlbum.isEmpty() || campoAno.getText().trim().isEmpty()) {
                     mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
@@ -80,13 +93,15 @@ public class MusicaUI {
                 }
                 int ano = Integer.parseInt(campoAno.getText().trim());
                 catalogoService.adicionarMusica(new Musica(titulo, artista, nomeAlbum, ano));
-                limparCamposMusica(campoTituloMusica, campoArtista, campoNomeAlbum, campoAno);
+                limparCamposMusica(campoTituloMusica, campoArtista, comboAlbuns, campoAno);
+                // Atualizar combo de álbuns após adicionar música
+                atualizarComboAlbuns(comboAlbuns, catalogoService);
             } catch (NumberFormatException ex) {
                 mostrarAlerta("Erro de Formato", "O ano deve ser um número válido (ex: 2023).");
             }
         });
 
-        botaoLimparCampos.setOnAction(evento -> limparCamposMusica(campoTituloMusica, campoArtista, campoNomeAlbum, campoAno));
+        botaoLimparCampos.setOnAction(evento -> limparCamposMusica(campoTituloMusica, campoArtista, comboAlbuns, campoAno));
 
         // --- Lógica do Botão Editar ---
         botaoEditar.setOnAction(evento -> {
@@ -199,12 +214,20 @@ public class MusicaUI {
         Scene cenaModal = new Scene(layoutModal, 400, 250);
         modalEdicao.setScene(cenaModal);
         modalEdicao.showAndWait(); // Exibe e espera a modal ser fechada
+    }    private static void atualizarComboAlbuns(ComboBox<String> comboAlbuns, CatalogoService catalogoService) {
+        comboAlbuns.getItems().clear();
+        catalogoService.getListaDeAlbuns().forEach(album -> {
+            if (!comboAlbuns.getItems().contains(album.getTituloAlbum())) {
+                comboAlbuns.getItems().add(album.getTituloAlbum());
+            }
+        });
     }
 
-    private static void limparCamposMusica(TextField campoTitulo, TextField campoArtista, TextField campoNomeAlbum, TextField campoAno) {
+    private static void limparCamposMusica(TextField campoTitulo, TextField campoArtista, ComboBox<String> comboAlbum, TextField campoAno) {
         campoTitulo.clear();
         campoArtista.clear();
-        campoNomeAlbum.clear();
+        comboAlbum.setValue(null);
+        comboAlbum.getEditor().clear();
         campoAno.clear();
         campoTitulo.requestFocus();
     }

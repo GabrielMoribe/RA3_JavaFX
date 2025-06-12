@@ -9,12 +9,22 @@ public class Album implements Serializable {
     private String artistaPrincipal;
     private int anoLancamento;
     private String genero;
+    private String emailProprietario; // Email do usuário proprietário
 
     public Album(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero) {
         this.tituloAlbum = tituloAlbum;
         this.artistaPrincipal = artistaPrincipal;
         this.anoLancamento = anoLancamento;
         this.genero = genero;
+        this.emailProprietario = "";
+    }
+
+    public Album(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero, String emailProprietario) {
+        this.tituloAlbum = tituloAlbum;
+        this.artistaPrincipal = artistaPrincipal;
+        this.anoLancamento = anoLancamento;
+        this.genero = genero;
+        this.emailProprietario = emailProprietario;
     }
 
     public String getTituloAlbum() {
@@ -47,6 +57,14 @@ public class Album implements Serializable {
 
     public void setGenero(String genero) {
         this.genero = genero;
+    }
+
+    public String getEmailProprietario() {
+        return emailProprietario;
+    }
+
+    public void setEmailProprietario(String emailProprietario) {
+        this.emailProprietario = emailProprietario;
     }
 
     @Override

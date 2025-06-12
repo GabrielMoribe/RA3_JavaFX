@@ -1,5 +1,5 @@
 package com.example.demo.view;
-
+import com.example.demo.services.AuthService;
 import com.example.demo.entidades.Album;
 import com.example.demo.services.CatalogoService;
 import javafx.geometry.Insets;
@@ -92,7 +92,7 @@ public class AlbumUI {
         botaoEditar.setOnAction(evento -> {
             Album albumSelecionado = visualizadorDeListaAlbuns.getSelectionModel().getSelectedItem();
             if (albumSelecionado != null) {
-                abrirModalEdicaoAlbum(albumSelecionado, visualizadorDeListaAlbuns);
+                abrirModalEdicaoAlbum(albumSelecionado, catalogoService, visualizadorDeListaAlbuns);
             } else {
                 mostrarAlerta("Nenhuma Seleção", "Por favor, selecione um álbum para editar.");
             }
@@ -112,85 +112,94 @@ public class AlbumUI {
         return painelPrincipalAba;
     }
 
-    private static void abrirModalEdicaoAlbum(Album albumParaEditar, ListView<Album> listView) {
-        Stage modalEdicao = new Stage();
-        modalEdicao.setTitle("Editar Álbum");
-        modalEdicao.initModality(Modality.APPLICATION_MODAL);
-        modalEdicao.setResizable(false);
+    // Modificar a modal de edição para incluir sincronização
+    private static void abrirModalEdicaoAlbum(Album albumParaEditar, CatalogoService catalogoService, ListView<Album> visualizadorDeListaAlbuns) {
+        Stage janelaModal = new Stage();
+        janelaModal.setTitle("Editar Álbum");
+        janelaModal.initModality(Modality.APPLICATION_MODAL);
 
-        // Campos de edição, preenchidos com os dados do álbum selecionado
+        // Campos de edição
         TextField campoTituloEdicao = new TextField(albumParaEditar.getTituloAlbum());
+        campoTituloEdicao.setPromptText("Título do Álbum");
         TextField campoArtistaEdicao = new TextField(albumParaEditar.getArtistaPrincipal());
+        campoArtistaEdicao.setPromptText("Artista Principal");
         TextField campoAnoEdicao = new TextField(String.valueOf(albumParaEditar.getAnoLancamento()));
+        campoAnoEdicao.setPromptText("Ano de Lançamento");
         TextField campoGeneroEdicao = new TextField(albumParaEditar.getGenero());
+        campoGeneroEdicao.setPromptText("Gênero");
 
-        // Formulário da modal
-        GridPane formularioEdicao = new GridPane();
-        formularioEdicao.setVgap(10);
-        formularioEdicao.setHgap(10);
-        formularioEdicao.setPadding(new Insets(20));
-
-        formularioEdicao.add(new Label("Título do Álbum:"), 0, 0);
-        formularioEdicao.add(campoTituloEdicao, 1, 0);
-        formularioEdicao.add(new Label("Artista Principal:"), 0, 1);
-        formularioEdicao.add(campoArtistaEdicao, 1, 1);
-        formularioEdicao.add(new Label("Ano Lançamento:"), 0, 2);
-        formularioEdicao.add(campoAnoEdicao, 1, 2);
-        formularioEdicao.add(new Label("Gênero:"), 0, 3);
-        formularioEdicao.add(campoGeneroEdicao, 1, 3);
-
-        // Botões da modal
         Button botaoSalvar = new Button("Salvar");
         Button botaoCancelar = new Button("Cancelar");
 
-        HBox painelBotoes = new HBox(10, botaoSalvar, botaoCancelar);
-        painelBotoes.setAlignment(Pos.CENTER_RIGHT);
-        painelBotoes.setPadding(new Insets(10, 20, 20, 20));
-
-        // Layout principal da modal
-        BorderPane layoutModal = new BorderPane();
-        layoutModal.setCenter(formularioEdicao);
-        layoutModal.setBottom(painelBotoes);
-
-        // Ações dos botões da modal
+        // Ação do botão salvar com sincronização
         botaoSalvar.setOnAction(evento -> {
             try {
+                String tituloAntigo = albumParaEditar.getTituloAlbum(); // Guardar título antigo
                 String novoTitulo = campoTituloEdicao.getText().trim();
                 String novoArtista = campoArtistaEdicao.getText().trim();
-                String novoAnoStr = campoAnoEdicao.getText().trim();
                 String novoGenero = campoGeneroEdicao.getText().trim();
 
-                if (novoTitulo.isEmpty() || novoArtista.isEmpty() || novoAnoStr.isEmpty() || novoGenero.isEmpty()) {
+                if (novoTitulo.isEmpty() || novoArtista.isEmpty() || campoAnoEdicao.getText().trim().isEmpty() || novoGenero.isEmpty()) {
                     mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
                     return;
                 }
-                int novoAno = Integer.parseInt(novoAnoStr);
 
-                // Atualiza o objeto Album original
+                int novoAno = Integer.parseInt(campoAnoEdicao.getText().trim());
+
+                // SINCRONIZAÇÃO: Se o título mudou, atualizar as músicas
+                if (!tituloAntigo.equals(novoTitulo)) {
+                    catalogoService.atualizarNomeAlbumEmMusicas(
+                            tituloAntigo,
+                            novoTitulo,
+                            AuthService.getUsuarioLogado().getEmail()
+                    );
+                }
+
+                // Atualizar o álbum
                 albumParaEditar.setTituloAlbum(novoTitulo);
                 albumParaEditar.setArtistaPrincipal(novoArtista);
                 albumParaEditar.setAnoLancamento(novoAno);
                 albumParaEditar.setGenero(novoGenero);
 
-                // Força a atualização da ListView para refletir a mudança
-                listView.refresh();
+                // Salvar alterações
+                catalogoService.atualizarAlbum(albumParaEditar);
+                visualizadorDeListaAlbuns.refresh();
 
                 mostrarAlerta("Sucesso", "Álbum editado com sucesso!");
-                modalEdicao.close();
+                janelaModal.close();
 
             } catch (NumberFormatException ex) {
-                mostrarAlerta("Erro de Formato", "O ano deve ser um número válido.");
+                mostrarAlerta("Erro de Formato", "O ano deve ser um número válido (ex: 2023).");
             } catch (Exception ex) {
-                mostrarAlerta("Erro", "Ocorreu um erro ao editar o álbum: " + ex.getMessage());
+                mostrarAlerta("Erro", "Erro ao editar álbum: " + ex.getMessage());
             }
         });
 
-        botaoCancelar.setOnAction(evento -> modalEdicao.close());
+        // Ação do botão cancelar
+        botaoCancelar.setOnAction(evento -> janelaModal.close());
 
-        // Configurar e exibir a modal
+        // Layout da modal
+        GridPane layoutModal = new GridPane();
+        layoutModal.setHgap(10);
+        layoutModal.setVgap(10);
+        layoutModal.setPadding(new Insets(20));
+
+        layoutModal.add(new Label("Título:"), 0, 0);
+        layoutModal.add(campoTituloEdicao, 1, 0);
+        layoutModal.add(new Label("Artista:"), 0, 1);
+        layoutModal.add(campoArtistaEdicao, 1, 1);
+        layoutModal.add(new Label("Ano:"), 0, 2);
+        layoutModal.add(campoAnoEdicao, 1, 2);
+        layoutModal.add(new Label("Gênero:"), 0, 3);
+        layoutModal.add(campoGeneroEdicao, 1, 3);
+
+        HBox painelBotoes = new HBox(10, botaoSalvar, botaoCancelar);
+        painelBotoes.setAlignment(Pos.CENTER);
+        layoutModal.add(painelBotoes, 0, 4, 2, 1);
+
         Scene cenaModal = new Scene(layoutModal, 400, 250);
-        modalEdicao.setScene(cenaModal);
-        modalEdicao.showAndWait();
+        janelaModal.setScene(cenaModal);
+        janelaModal.showAndWait();
     }
 
     private static void limparCamposAlbum(TextField campoTitulo, TextField campoArtista, TextField campoAno, TextField campoGenero) {

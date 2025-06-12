@@ -1,7 +1,6 @@
 package com.example.demo.view;
 
 import com.example.demo.entidades.User;
-import com.example.demo.entidades.arquivo.UserFile;
 import com.example.demo.services.CatalogoService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -22,15 +21,16 @@ public class UserUI {
         BorderPane painelPrincipalAba = new BorderPane();
         painelPrincipalAba.setPadding(new Insets(10));
 
-        ListView<User> visualizadorDeListaUsuarios = new ListView<>(catalogoService.getListaDeUsuarios());
-
-        // Campos do forms
+        ListView<User> visualizadorDeListaUsuarios = new ListView<>(catalogoService.getListaDeUsuarios());        // Campos do forms
         TextField campoNome = new TextField();
         campoNome.setPromptText("Nome Completo");   //  Placeholder
         TextField campoEmail = new TextField();
         campoEmail.setPromptText("Email");
         TextField campoTelefone = new TextField();
         campoTelefone.setPromptText("(99) 99999-9999");
+        PasswordField campoSenha = new PasswordField();
+        campoSenha.setPromptText("Senha");
+
 
         // Cria os botoes
         Button botaoAdicionar = new Button("Adicionar Usuário");
@@ -41,13 +41,15 @@ public class UserUI {
         // Monta o layout (Grid) da pagina
         GridPane painelFormulario = new GridPane();
         painelFormulario.setVgap(8);
-        painelFormulario.setHgap(8);
-        painelFormulario.add(new Label("Nome:"), 0, 0);
+        painelFormulario.setHgap(8);        painelFormulario.add(new Label("Nome:"), 0, 0);
         painelFormulario.add(campoNome, 1, 0);
         painelFormulario.add(new Label("Email:"), 0, 1);
         painelFormulario.add(campoEmail, 1, 1);
         painelFormulario.add(new Label("Telefone:"), 0, 2);
         painelFormulario.add(campoTelefone, 1, 2);
+        painelFormulario.add(new Label("Senha:"), 0, 3);
+        painelFormulario.add(campoSenha, 1, 3);
+
 
         // Agrupa elementos
         HBox painelBotoesFormulario = new HBox(10, botaoAdicionar, botaoLimparCampos);
@@ -65,16 +67,15 @@ public class UserUI {
         BorderPane.setMargin(painelBotoesLista, new Insets(10, 0, 0, 0));
 
         // Chama o metodo configurarFormatacaoTelefone(TextField campoTelefone)
-        configurarFormatacaoTelefone(campoTelefone);
-
-        // Add usuario
+        configurarFormatacaoTelefone(campoTelefone);        // Add usuario
         botaoAdicionar.setOnAction(evento -> {
             try {
                 String nome = campoNome.getText().trim();
                 String email = campoEmail.getText().trim();
                 String telefone = campoTelefone.getText().trim();
+                String senha = campoSenha.getText();
 
-                if (nome.isEmpty() || email.isEmpty() || telefone.isEmpty()) {
+                if (nome.isEmpty() || email.isEmpty() || telefone.isEmpty() || senha.isEmpty()) {
                     mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
                     return;
                 }
@@ -89,11 +90,12 @@ public class UserUI {
                     return;
                 }
 
-                if (!catalogoService.adicionarUsuario(new User(nome, email, telefone))){
-                    mostrarAlerta("Erro ao cadastrar usuario" , "Email já cadastrado no sistema. Tente outro email.");
-                }
-                //catalogoService.adicionarUsuario(new User(nome, email, telefone));
-                limparCamposUsuario(campoNome, campoEmail, campoTelefone);
+                if (senha.length() < 6) {
+                    mostrarAlerta("Erro de Formato", "A senha deve ter pelo menos 6 caracteres.");
+                    return;
+                }                if (!catalogoService.adicionarUsuario(new User(nome, email, telefone))){
+                    mostrarAlerta("Erro ao cadastrar usuario" , "Email já cadastrado no sistema. Tente outro email.");                }
+                limparCamposUsuario(campoNome, campoEmail, campoTelefone, campoSenha);
 
             } catch (Exception e) {
                 mostrarAlerta("Erro", "Erro ao adicionar usuário: " + e.getMessage());
@@ -115,17 +117,14 @@ public class UserUI {
             User usuarioSelecionado = visualizadorDeListaUsuarios.getSelectionModel().getSelectedItem();
             if (usuarioSelecionado != null) {
                 if (confirmarExclusao("Excluir Usuário: " + usuarioSelecionado.getNome(),
-                        "Tem certeza que deseja excluir este usuário?")) {
-                    catalogoService.excluirUsuario(usuarioSelecionado);
-                    limparCamposUsuario(campoNome, campoEmail, campoTelefone);
+                        "Tem certeza que deseja excluir este usuário?")) {                    catalogoService.excluirUsuario(usuarioSelecionado);
+                    limparCamposUsuario(campoNome, campoEmail, campoTelefone, campoSenha);
                 }
             } else {
                 mostrarAlerta("Nenhuma Seleção", "Por favor, selecione um usuário para excluir.");
             }
-        });
-
-        // Limpar campos
-        botaoLimparCampos.setOnAction(evento -> limparCamposUsuario(campoNome, campoEmail, campoTelefone));
+        });        // Limpar campos
+        botaoLimparCampos.setOnAction(evento -> limparCamposUsuario(campoNome, campoEmail, campoTelefone, campoSenha));
 
         return painelPrincipalAba;
     }
@@ -196,27 +195,20 @@ public class UserUI {
                         .anyMatch(u -> u.getEmail().equals(novoEmail))) {
                     mostrarAlerta("Erro", "Já existe um usuário com este email.");
                     return;
-                }
-
-                // Atualizar o usuário
+                }                // Atualizar o usuário
+                String emailOriginal = usuario.getEmail(); // Guardar email original
                 usuario.setNome(novoNome);
-                String emailOriginal = usuario.getEmail();
                 usuario.setEmail(novoEmail);
                 usuario.setTelefone(novoTelefone);
 
-                //Chama o metodo editarUsuario(String emailOriginal, String novoNome, String novoEmail, String novoTelefone)
-                UserFile.editarUsuario(emailOriginal, novoNome, novoEmail, novoTelefone);
-
-
-                // Atualizar a lista na interface
-                catalogoService.getListaDeUsuarios().set(
-                    catalogoService.getListaDeUsuarios().indexOf(usuario), usuario);
+                // Usar o novo método do CatalogoService
+                catalogoService.atualizarUsuario(usuario, emailOriginal);
 
                 mostrarAlerta("Sucesso", "Usuário editado com sucesso!");
                 modalEdicao.close();
 
-            } catch (Exception ex) {
-                mostrarAlerta("Erro", "Erro ao editar usuário: " + ex.getMessage());
+            } catch (Exception e) {
+                mostrarAlerta("Erro", "Erro ao editar usuário: " + e.getMessage());
             }
         });
 
@@ -226,9 +218,7 @@ public class UserUI {
         Scene cenaModal = new Scene(layoutModal, 350, 200);
         modalEdicao.setScene(cenaModal);
         modalEdicao.showAndWait();
-    }
-
-    private static void configurarFormatacaoTelefone(TextField campoTelefone) {
+    }    public static void configurarFormatacaoTelefone(TextField campoTelefone) {
 
         // Codigo roda toda vez que o campo muda (textProperty())
         campoTelefone.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -247,7 +237,7 @@ public class UserUI {
         });
     }
 
-    private static String formatarTelefone(String numeros) {
+    public static String formatarTelefone(String numeros) {
         if (numeros.length() == 0) return "";
         if (numeros.length() <= 2) return "(" + numeros;
         if (numeros.length() <= 6) return "(" + numeros.substring(0, 2) + ") " + numeros.substring(2);
@@ -255,22 +245,22 @@ public class UserUI {
         return "(" + numeros.substring(0, 2) + ") " + numeros.substring(2, 7) + "-" + numeros.substring(7);
     }
 
-    private static boolean isEmailValido(String email) {
+    public static boolean isEmailValido(String email) {
         return email.matches("^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$");
         // A-Za-z0-9+_.- = Um ou mais caracteres
         // A-Za-z0-9.-   = Um ou mais caracteres
         // A-Za-z{2,}    = Qualquer caractere, pelo menos duas vezes
     }
 
-    private static boolean isTelefoneValido(String telefone) {
-        String apenasNumeros = telefone.replaceAll("\\D", "");
-        return apenasNumeros.length() >= 10 && apenasNumeros.length() <= 11;
+    public static boolean isTelefoneValido(String telefone) {
+        String apenasNumeros = telefone.replaceAll("\\D", "");        return apenasNumeros.length() >= 10 && apenasNumeros.length() <= 11;
     }
 
-    private static void limparCamposUsuario(TextField campoNome, TextField campoEmail, TextField campoTelefone) {
+    private static void limparCamposUsuario(TextField campoNome, TextField campoEmail, TextField campoTelefone, PasswordField campoSenha) {
         campoNome.clear();
         campoEmail.clear();
         campoTelefone.clear();
+        campoSenha.clear();
         campoNome.requestFocus();
     }
 

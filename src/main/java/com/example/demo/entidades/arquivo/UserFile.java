@@ -1,4 +1,3 @@
-
 package com.example.demo.entidades.arquivo;
 
 import com.example.demo.entidades.User;
@@ -32,10 +31,11 @@ public class UserFile {
         ArrayList<User> lista_usuarios = new ArrayList<>();
 
         try {
-            File arq = new File(CAMINHO_ARQUIVO);
-            if (arq.exists()) {
+            File arq = new File(CAMINHO_ARQUIVO);            if (arq.exists()) {
                 try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(arq))) {
-                    lista_usuarios = (ArrayList<User>) ois.readObject();
+                    @SuppressWarnings("unchecked")
+                    ArrayList<User> temp = (ArrayList<User>) ois.readObject();
+                    lista_usuarios = temp;
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -45,7 +45,15 @@ public class UserFile {
         return lista_usuarios;
     }
 
-    public static void adicionarPessoa(User newUser) {
+    public static User buscarUsuarioPorEmail(String email) {
+        ArrayList<User> lista_usuarios = lerLista();
+        return lista_usuarios.stream()
+                .filter(user -> user.getEmail().equals(email))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static boolean adicionarUsuario(User newUser) {
         ArrayList<User> lista_usuarios = lerLista();
 
         // VERIFICA SE O EMAIL JA ESTA CADASTRADO
@@ -55,7 +63,9 @@ public class UserFile {
         if (!usuarioExiste) {
             lista_usuarios.add(newUser);
             salvarLista(lista_usuarios);
+            return true;
         }
+        return false;
     }
 
     public static boolean verificarUsuarioExistente(String email) {
@@ -72,10 +82,8 @@ public class UserFile {
                 user.setNome(novoNome);
                 user.setEmail(novoEmail);
                 user.setTelefone(novoTelefone);
-                break;
             }
         }
-
         salvarLista(lista_usuarios);
     }
 

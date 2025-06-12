@@ -1,5 +1,6 @@
 package com.example.demo.entidades.arquivo;
 
+import com.example.demo.entidades.arquivo.MusicaFile;
 import com.example.demo.entidades.Musica;
 
 import java.io.*;
@@ -29,10 +30,11 @@ public class MusicaFile {
         ArrayList<Musica> lista_musicas = new ArrayList<>();
 
         try {
-            File arq = new File(CAMINHO_ARQUIVO);
-            if (arq.exists()) {
+            File arq = new File(CAMINHO_ARQUIVO);            if (arq.exists()) {
                 try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(arq))) {
-                    lista_musicas = (ArrayList<Musica>) ois.readObject();
+                    @SuppressWarnings("unchecked")
+                    ArrayList<Musica> temp = (ArrayList<Musica>) ois.readObject();
+                    lista_musicas = temp;
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -76,5 +78,28 @@ public class MusicaFile {
         }
 
         return removido;
+    }
+
+    public static void excluirMusicasDoUsuario(String emailUsuario) {
+        ArrayList<Musica> lista_musicas = lerLista();
+        lista_musicas.removeIf(musica -> emailUsuario.equals(musica.getEmailProprietario()));
+        salvarLista(lista_musicas);
+    }
+
+    public static void atualizarNomeAlbumEmMusicas(String nomeAntigoAlbum, String novoNomeAlbum, String emailUsuario) {
+        ArrayList<Musica> lista_musicas = lerLista();
+        
+        boolean alterado = false;
+        for (Musica musica : lista_musicas) {
+            if (emailUsuario.equals(musica.getEmailProprietario()) && 
+                nomeAntigoAlbum.equals(musica.getNomeAlbum())) {
+                musica.setNomeAlbum(novoNomeAlbum);
+                alterado = true;
+            }
+        }
+        
+        if (alterado) {
+            salvarLista(lista_musicas);
+        }
     }
 }

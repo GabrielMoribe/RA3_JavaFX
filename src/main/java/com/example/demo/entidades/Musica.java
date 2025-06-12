@@ -9,12 +9,22 @@ public class Musica implements Serializable {
     private String artista;
     private String nomeAlbum;
     private int ano;
+    private String emailProprietario; // serve cm o id
 
     public Musica(String tituloMusica, String artista, String nomeAlbum, int ano) {
         this.tituloMusica = tituloMusica;
         this.artista = artista;
         this.nomeAlbum = nomeAlbum;
         this.ano = ano;
+        this.emailProprietario = "";
+    }
+
+    public Musica(String tituloMusica, String artista, String nomeAlbum, int ano, String emailProprietario) {
+        this.tituloMusica = tituloMusica;
+        this.artista = artista;
+        this.nomeAlbum = nomeAlbum;
+        this.ano = ano;
+        this.emailProprietario = emailProprietario;
     }
 
     public String getTituloMusica() {
@@ -47,6 +57,14 @@ public class Musica implements Serializable {
 
     public void setAno(int ano) {
         this.ano = ano;
+    }
+
+    public String getEmailProprietario() {
+        return emailProprietario;
+    }
+
+    public void setEmailProprietario(String emailProprietario) {
+        this.emailProprietario = emailProprietario;
     }
 
     @Override
