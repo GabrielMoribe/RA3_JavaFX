@@ -11,7 +11,8 @@ import javafx.scene.layout.HBox;
 
 import java.util.Optional;
 
-public class AdminUI {    public static BorderPane criarPainelAdmin(CatalogoService catalogoService) {
+public class AdminUI {    
+    public static BorderPane criarPainelAdmin(CatalogoService catalogoService) {
         BorderPane painelPrincipalAba = new BorderPane();
         painelPrincipalAba.setPadding(new Insets(10));
 

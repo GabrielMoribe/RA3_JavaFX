@@ -41,21 +41,10 @@ public class AlbumFile {
             e.printStackTrace();
         }
         return lista_albums;
-    }
-
-    public static void adicionarAlbum(Album novoAlbum) {
+    }    public static void adicionarAlbum(Album novoAlbum) {
         ArrayList<Album> lista_albums = lerLista();
-
-        boolean albumExiste = lista_albums.stream()
-                .anyMatch(album -> album.getTituloAlbum().equals(novoAlbum.getTituloAlbum())
-                        && album.getArtistaPrincipal().equals(novoAlbum.getArtistaPrincipal()));
-
-        if (!albumExiste) {
-            lista_albums.add(novoAlbum);
-            salvarLista(lista_albums);
-        } else {
-            System.err.println("Álbum já existe!");
-        }
+        lista_albums.add(novoAlbum);
+        salvarLista(lista_albums);
     }
 
     public static boolean verificarAlbumExistente(String titulo, String artista) {
@@ -63,6 +52,15 @@ public class AlbumFile {
         return lista_albums.stream()
                 .anyMatch(album -> album.getTituloAlbum().equals(titulo)
                         && album.getArtistaPrincipal().equals(artista));
+    }
+
+    public static boolean verificarAlbumExistenteParaUsuario(String titulo, String artista, String emailUsuario) {
+        ArrayList<Album> lista_albums = lerLista();
+        return lista_albums.stream()
+                .anyMatch(album -> album.getTituloAlbum().equals(titulo)
+                        && album.getArtistaPrincipal().equals(artista)
+                        && album.getProprietario() != null 
+                        && album.getProprietario().getEmail().equals(emailUsuario));
     }
 
     public static boolean deletarAlbum(Album album) {

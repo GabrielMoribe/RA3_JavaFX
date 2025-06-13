@@ -25,7 +25,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage palcoPrincipal) {
-        // Mostrar tela de login primeiro
+        // Mostrar tela de login primeiro (Inicio da aplicacao)
         if (!LoginUI.mostrarTelaLogin(palcoPrincipal)) {
             return;
         }

@@ -11,7 +11,6 @@ public class Album implements Serializable {
     private String genero;
     private User proprietario; // Instância do usuário proprietário
 
-    // Construtor principal com injeção de dependência
     public Album(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero, User proprietario) {
         this.tituloAlbum = tituloAlbum;
         this.artistaPrincipal = artistaPrincipal;
@@ -56,13 +55,13 @@ public class Album implements Serializable {
 
     public void setProprietario(User proprietario) {
         this.proprietario = proprietario;
-    }    // Método de compatibilidade para email do proprietário
+    }
     public String getEmailProprietario() {
         return proprietario != null ? proprietario.getEmail() : "";
     }
 
     @Override
     public String toString() {
-        return tituloAlbum + " - " + artistaPrincipal + " (" + anoLancamento + ") [" + genero + "]";
+        return "Album: " + tituloAlbum + " - "+"Artista: "  + artistaPrincipal + " - " +"Ano Lancamento: " + " (" + anoLancamento + ") " + " - " + "Genero: "+"[" + genero + "]";
     }
 }

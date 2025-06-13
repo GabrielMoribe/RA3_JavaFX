@@ -39,7 +39,7 @@ public class CatalogoService {
         }
         listaDeAlbuns.setAll(albunsUsuario);
 
-        // Filtrar músicas do usuário logado
+        // Filtrar músicas do usuário
         ArrayList<Musica> todasMusicas = MusicaFile.lerLista();
         ArrayList<Musica> musicasUsuario = new ArrayList<>();
         for (Musica musica : todasMusicas) {
@@ -54,7 +54,7 @@ public class CatalogoService {
 
 
 
-        // Métodos para Musicas
+    // ----------------------------Métodos para Musicas----------------------------
     public ObservableList<Musica> getListaDeMusicas() {
         return listaDeMusicas;
     }    public void adicionarMusica(Musica musica) {
@@ -62,22 +62,32 @@ public class CatalogoService {
             if (!MusicaFile.verificarMusicaExistente(musica.getTituloMusica(), musica.getArtista())) {
                 listaDeMusicas.add(musica);
                 MusicaFile.adicionarMusica(musica);
+                
+                // Recarregar a lista filtrada para o usuário logado
+                User usuarioLogado = AuthService.getUsuarioLogado();
+                if (usuarioLogado != null) {
+                    filtrarDadosUsuarioLogado(usuarioLogado.getEmail());
+                }
             }
         }
     }
     
-    // Método para adicionar música com injeção de dependência
+    //Injecao de dependencia
     public void adicionarMusicaComDependencia(String tituloMusica, String artista, int ano, Album album) {
         if (album != null) {
             Musica musica = criarMusica(tituloMusica, artista, ano, album);
             adicionarMusica(musica);
         }
-    }
-
-    public void excluirMusica(Musica musica) {
+    }    public void excluirMusica(Musica musica) {
         if (musica != null) {
             listaDeMusicas.remove(musica);
             MusicaFile.deletarMusica(musica);
+            
+            // Recarregar a lista filtrada para o usuário logado
+            User usuarioLogado = AuthService.getUsuarioLogado();
+            if (usuarioLogado != null) {
+                filtrarDadosUsuarioLogado(usuarioLogado.getEmail());
+            }
         }
     }
 
@@ -85,31 +95,54 @@ public class CatalogoService {
     public ObservableList<Album> getListaDeAlbuns() {
         return listaDeAlbuns;
     }    public void adicionarAlbum(Album album) {
-        if (album != null && album.getTituloAlbum() != null && !album.getTituloAlbum().trim().isEmpty()) {
-            if (!AlbumFile.verificarAlbumExistente(album.getTituloAlbum(), album.getArtistaPrincipal())) {
+        if (album != null && album.getTituloAlbum() != null && !album.getTituloAlbum().trim().isEmpty()) {            System.out.println("DEBUG CatalogoService: Verificando se álbum existe: " + album.getTituloAlbum() + " - " + album.getArtistaPrincipal());
+            
+            // Verificar apenas álbuns do usuário atual
+            User usuarioLogado = AuthService.getUsuarioLogado();
+            boolean albumExiste = false;
+            if (usuarioLogado != null) {
+                albumExiste = AlbumFile.verificarAlbumExistenteParaUsuario(
+                    album.getTituloAlbum(), 
+                    album.getArtistaPrincipal(), 
+                    usuarioLogado.getEmail()
+                );
+            }
+              
+            if (!albumExiste) {
                 listaDeAlbuns.add(album);
                 AlbumFile.adicionarAlbum(album);
+                
+                // Recarregar a lista filtrada para o usuário logado
+                if (usuarioLogado != null) {
+                    filtrarDadosUsuarioLogado(usuarioLogado.getEmail());
+                }
             }
+        } else {
+            System.out.println("DEBUG CatalogoService: Álbum inválido - não foi adicionado");
         }
     }
     
-    // Método para adicionar álbum com injeção de dependência
+
     public void adicionarAlbumComDependencia(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero) {
         User proprietario = AuthService.getUsuarioLogado();
         if (proprietario != null) {
             Album album = criarAlbum(tituloAlbum, artistaPrincipal, anoLancamento, genero, proprietario);
             adicionarAlbum(album);
         }
-    }
-
-    public void excluirAlbum(Album album) {
+    }    public void excluirAlbum(Album album) {
         if (album != null) {
             listaDeAlbuns.remove(album);
             AlbumFile.deletarAlbum(album);
+            
+            // Recarregar a lista filtrada para o usuário logado
+            User usuarioLogado = AuthService.getUsuarioLogado();
+            if (usuarioLogado != null) {
+                filtrarDadosUsuarioLogado(usuarioLogado.getEmail());
+            }
         }
     }
 
-    // Métodos para Usuários
+    //----------------------------Métodos para Usuários----------------------------
     public ObservableList<User> getListaDeUsuarios() {
         return listaDeUsuarios;
     }
@@ -178,7 +211,6 @@ public class CatalogoService {
             // Atualizar na lista completa
             for (int i = 0; i < todosUsuarios.size(); i++) {
                 User usuarioExistente = todosUsuarios.get(i);
-                // Identificar o usuário correto pelo email original
                 if (usuarioExistente.getEmail().equals(emailParaBuscar)) {
                     todosUsuarios.set(i, usuario);
                     break;
@@ -207,15 +239,15 @@ public class CatalogoService {
                 .orElse(null);
     }
     
-    // Método para criar Album com injeção de dependência
+    // injeção de dependência
     public Album criarAlbum(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero, User proprietario) {
         return new Album(tituloAlbum, artistaPrincipal, anoLancamento, genero, proprietario);
     }
     
-    // Método para criar Musica com injeção de dependência
+    // injeção de dependência
     public Musica criarMusica(String tituloMusica, String artista, int ano, Album album) {
         return new Musica(tituloMusica, artista, ano, album);
-    }    // Método auxiliar para buscar álbum pelo nome para o usuário logado
+    }
     public Album buscarAlbumPorNome(String nomeAlbum) {
         User usuarioLogado = AuthService.getUsuarioLogado();
         if (usuarioLogado == null) return null;
@@ -226,7 +258,7 @@ public class CatalogoService {
                                album.getProprietario().getEmail().equals(usuarioLogado.getEmail()))
                 .findFirst()
                 .orElse(null);
-    }    // Método para recarregar apenas os dados do usuário logado
+    }
     public void recarregarDadosUsuarioLogado() {
         if (AuthService.getUsuarioLogado() != null) {
             String emailUsuario = AuthService.getUsuarioLogado().getEmail();

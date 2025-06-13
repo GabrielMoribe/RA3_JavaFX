@@ -77,7 +77,7 @@ public class PerfilUI {
           return vbox;
     }
 
-    // Método para atualizar a interface após edição
+    // Atualizar a interface após edição
     private void atualizarInterface() {
         User usuarioLogado = AuthService.getUsuarioLogado();
         
@@ -159,9 +159,16 @@ public class PerfilUI {
                     mostrarAlerta("Erro", "Digite um email válido!");
                     return;
                 }
-                
-                if (novoTelefone.isEmpty() || !UserUI.isTelefoneValido(novoTelefone)) {
+                  if (novoTelefone.isEmpty() || !UserUI.isTelefoneValido(novoTelefone)) {
                     mostrarAlerta("Erro", "Digite um telefone válido!");
+                    return;
+                }
+
+                // Verificar se o novo email já existe (se for diferente do atual)
+                if (!novoEmail.equals(usuarioLogado.getEmail()) && 
+                    catalogoService.getListaDeUsuarios().stream()
+                        .anyMatch(u -> u.getEmail().equals(novoEmail))) {
+                    mostrarAlerta("Erro", "Já existe um usuário com este email.");
                     return;
                 }
 

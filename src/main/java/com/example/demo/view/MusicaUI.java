@@ -18,10 +18,9 @@ import java.util.Optional;
 
 public class MusicaUI {
 
-    // Referência estática para a combobox de álbuns para permitir atualizações externas
+    // Referência para o combobox de álbuns
     private static ComboBox<String> comboAlbunsGlobal;
     private static CatalogoService catalogoServiceGlobal;    public static BorderPane criarPainelCrudMusicas(CatalogoService catalogoService) {
-        // Armazenar referências para atualização externa
         catalogoServiceGlobal = catalogoService;
         
         BorderPane painelPrincipalAba = new BorderPane();
@@ -92,12 +91,20 @@ public class MusicaUI {
                 
                 if (nomeAlbum == null) {
                     nomeAlbum = comboAlbuns.getEditor().getText().trim();
-                }
-
-                if (titulo.isEmpty() || artista.isEmpty() || nomeAlbum.isEmpty() || campoAno.getText().trim().isEmpty()) {
+                }                if (titulo.isEmpty() || artista.isEmpty() || nomeAlbum.isEmpty() || campoAno.getText().trim().isEmpty()) {
                     mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
                     return;
-                }                int ano = Integer.parseInt(campoAno.getText().trim());
+                }
+
+                int ano = Integer.parseInt(campoAno.getText().trim());
+                
+                // Validar se o ano é válido
+                if (!isAnoValido(ano)) {
+                    int anoAtual = java.time.Year.now().getValue();
+                    mostrarAlerta("Erro de Formato", 
+                        "O ano deve estar entre 1800 e " + (anoAtual + 5) + ".");
+                    return;
+                }
                 
                 // Buscar ou criar o álbum
                 Album album = catalogoService.buscarAlbumPorNome(nomeAlbum);
@@ -199,14 +206,20 @@ public class MusicaUI {
                 String novoTitulo = campoTituloEdicao.getText().trim();
                 String novoArtista = campoArtistaEdicao.getText().trim();
                 String novoAlbum = campoAlbumEdicao.getText().trim();
-                String novoAnoStr = campoAnoEdicao.getText().trim();
-
-                if (novoTitulo.isEmpty() || novoArtista.isEmpty() || novoAlbum.isEmpty() || novoAnoStr.isEmpty()) {
+                String novoAnoStr = campoAnoEdicao.getText().trim();                if (novoTitulo.isEmpty() || novoArtista.isEmpty() || novoAlbum.isEmpty() || novoAnoStr.isEmpty()) {
                     mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
                     return;
                 }
 
                 int novoAno = Integer.parseInt(novoAnoStr);
+                
+                // Validar se o ano é válido
+                if (!isAnoValido(novoAno)) {
+                    int anoAtual = java.time.Year.now().getValue();
+                    mostrarAlerta("Erro de Formato", 
+                        "O ano deve estar entre 1800 e " + (anoAtual + 5) + ".");
+                    return;
+                }
 
                 // Atualiza o objeto Musica original que está na lista
                 musicaParaEditar.setTituloMusica(novoTitulo);
@@ -271,10 +284,17 @@ public class MusicaUI {
         return resultado.isPresent() && resultado.get() == ButtonType.OK;
     }
 
-    // Método público para atualizar a combobox externamente
+    // Atualiza a combobox
     public static void atualizarComboAlbunsExternamente() {
         if (comboAlbunsGlobal != null && catalogoServiceGlobal != null) {
             atualizarComboAlbuns(comboAlbunsGlobal, catalogoServiceGlobal);
         }
+    }
+
+    // Método para validar ano de lançamento
+    private static boolean isAnoValido(int ano) {
+        int anoAtual = java.time.Year.now().getValue();
+        // Considera válidos anos entre 1800 e 5 anos no futuro
+        return ano >= 1800 && ano <= (anoAtual + 5);
     }
 }

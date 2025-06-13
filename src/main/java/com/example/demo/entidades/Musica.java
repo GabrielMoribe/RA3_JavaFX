@@ -10,7 +10,7 @@ public class Musica implements Serializable {
     private int ano;
     private Album album; // Instância do álbum
 
-    // Construtor principal com injeção de dependência
+
     public Musica(String tituloMusica, String artista, int ano, Album album) {
         this.tituloMusica = tituloMusica;
         this.artista = artista;
@@ -46,7 +46,6 @@ public class Musica implements Serializable {
     }
 
     public void setNomeAlbum(String nomeAlbum) {
-        // Este método será usado para compatibilidade, mas a injeção de dependência deveria ser preferida
         // Se não há album, não podemos definir o nome
         if (album != null) {
             album.setTituloAlbum(nomeAlbum);
@@ -59,7 +58,6 @@ public class Musica implements Serializable {
         this.ano = ano;
     }
 
-    // Método de compatibilidade para email do proprietário (via álbum)
     public String getEmailProprietario() {
         return album != null && album.getProprietario() != null ? album.getProprietario().getEmail() : "";
     }

@@ -72,12 +72,21 @@ public class AlbumUI {
             try {
                 String titulo = campoTituloAlbum.getText().trim();
                 String artista = campoArtistaPrincipal.getText().trim();
-                String genero = campoGenero.getText().trim();
-
-                if (titulo.isEmpty() || artista.isEmpty() || campoAnoLancamento.getText().trim().isEmpty() || genero.isEmpty()) {
+                String genero = campoGenero.getText().trim();                if (titulo.isEmpty() || artista.isEmpty() || campoAnoLancamento.getText().trim().isEmpty() || genero.isEmpty()) {
                     mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
                     return;
-                }                int ano = Integer.parseInt(campoAnoLancamento.getText().trim());
+                }
+
+                int ano = Integer.parseInt(campoAnoLancamento.getText().trim());
+                
+                // Validar se o ano é válido
+                if (!isAnoValido(ano)) {
+                    int anoAtual = java.time.Year.now().getValue();
+                    mostrarAlerta("Erro de Formato", 
+                        "O ano de lançamento deve estar entre 1800 e " + (anoAtual + 5) + ".");
+                    return;
+                }
+                
                 catalogoService.adicionarAlbumComDependencia(titulo, artista, ano, genero);
                 limparCamposAlbum(campoTituloAlbum, campoArtistaPrincipal, campoAnoLancamento, campoGenero);
             } catch (NumberFormatException ex) {
@@ -130,20 +139,25 @@ public class AlbumUI {
         Button botaoSalvar = new Button("Salvar");
         Button botaoCancelar = new Button("Cancelar");
 
-        // Ação do botão salvar com sincronização
         botaoSalvar.setOnAction(evento -> {
             try {
                 String tituloAntigo = albumParaEditar.getTituloAlbum(); // Guardar título antigo
                 String novoTitulo = campoTituloEdicao.getText().trim();
                 String novoArtista = campoArtistaEdicao.getText().trim();
-                String novoGenero = campoGeneroEdicao.getText().trim();
-
-                if (novoTitulo.isEmpty() || novoArtista.isEmpty() || campoAnoEdicao.getText().trim().isEmpty() || novoGenero.isEmpty()) {
+                String novoGenero = campoGeneroEdicao.getText().trim();                if (novoTitulo.isEmpty() || novoArtista.isEmpty() || campoAnoEdicao.getText().trim().isEmpty() || novoGenero.isEmpty()) {
                     mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
                     return;
                 }
 
                 int novoAno = Integer.parseInt(campoAnoEdicao.getText().trim());
+                
+                // Validar se o ano é válido
+                if (!isAnoValido(novoAno)) {
+                    int anoAtual = java.time.Year.now().getValue();
+                    mostrarAlerta("Erro de Formato", 
+                        "O ano de lançamento deve estar entre 1800 e " + (anoAtual + 5) + ".");
+                    return;
+                }
 
                 // SINCRONIZAÇÃO: Se o título mudou, atualizar as músicas
                 if (!tituloAntigo.equals(novoTitulo)) {
@@ -225,5 +239,12 @@ public class AlbumUI {
         dialogoConfirmacao.setContentText(mensagemConteudo);
         Optional<ButtonType> resultado = dialogoConfirmacao.showAndWait();
         return resultado.isPresent() && resultado.get() == ButtonType.OK;
+    }
+
+    // Método para validar ano de lançamento
+    private static boolean isAnoValido(int ano) {
+        int anoAtual = java.time.Year.now().getValue();
+        // Considera válidos anos entre 1800 e 5 anos no futuro
+        return ano >= 1800 && ano <= (anoAtual + 5);
     }
 }

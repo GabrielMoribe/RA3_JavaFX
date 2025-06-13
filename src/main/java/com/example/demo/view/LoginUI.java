@@ -84,7 +84,7 @@ public class LoginUI {
             }
         });
 
-        // Ação do botão Cadastro
+        // Ação do botão Cadastro (Abre a tela de cadastro)
         botaoCadastro.setOnAction(evento -> {
             if (mostrarTelaCadastro()) {
                 loginSucesso[0] = true;
@@ -177,7 +177,7 @@ public class LoginUI {
         // Configurar formatação do telefone
         configurarFormatacaoTelefone(campoTelefone);
 
-        // Variável para controlar se o cadastro foi bem-sucedido
+        // Variável para se o cadastro foi bem-sucedido
         final boolean[] cadastroSucesso = {false};
 
         // Ação do botão Cadastrar
