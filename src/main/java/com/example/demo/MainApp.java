@@ -127,8 +127,13 @@ public class MainApp extends Application {
         // Adicionar listener para atualizar dados quando a aba Músicas for selecionada
         abas.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
             if (newTab == abaMusicas) {
-                // Atualizar dados do usuário logado
-                catalogoService.atualizarDadosUsuarioLogado();
+                // Recarregar dados do usuário logado ao entrar na aba de músicas
+                catalogoService.recarregarDadosUsuarioLogado();
+                // Atualizar combobox de álbuns
+                MusicaUI.atualizarComboAlbunsExternamente();
+            } else if (newTab == abaAlbuns) {
+                // Recarregar dados do usuário logado ao entrar na aba de álbuns
+                catalogoService.recarregarDadosUsuarioLogado();
             } else if (newTab == abaPerfil) {
                 // Atualizar painel de perfil
                 abaPerfil.setContent(perfilUI.criarPainelPerfil());

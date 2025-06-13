@@ -1,5 +1,6 @@
 package com.example.demo.view;
 
+import com.example.demo.entidades.Album;
 import com.example.demo.entidades.Musica;
 import com.example.demo.services.CatalogoService;
 import javafx.geometry.Insets;
@@ -17,7 +18,12 @@ import java.util.Optional;
 
 public class MusicaUI {
 
-    public static BorderPane criarPainelCrudMusicas(CatalogoService catalogoService) {
+    // Referência estática para a combobox de álbuns para permitir atualizações externas
+    private static ComboBox<String> comboAlbunsGlobal;
+    private static CatalogoService catalogoServiceGlobal;    public static BorderPane criarPainelCrudMusicas(CatalogoService catalogoService) {
+        // Armazenar referências para atualização externa
+        catalogoServiceGlobal = catalogoService;
+        
         BorderPane painelPrincipalAba = new BorderPane();
         painelPrincipalAba.setPadding(new Insets(10));
 
@@ -29,6 +35,7 @@ public class MusicaUI {
         
         // ComboBox para álbuns existentes
         ComboBox<String> comboAlbuns = new ComboBox<>();
+        comboAlbunsGlobal = comboAlbuns; // Armazenar referência global
         comboAlbuns.setPromptText("Selecione um álbum ou digite um novo");
         comboAlbuns.setEditable(true);
         comboAlbuns.setPrefWidth(200);
@@ -90,12 +97,24 @@ public class MusicaUI {
                 if (titulo.isEmpty() || artista.isEmpty() || nomeAlbum.isEmpty() || campoAno.getText().trim().isEmpty()) {
                     mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
                     return;
+                }                int ano = Integer.parseInt(campoAno.getText().trim());
+                
+                // Buscar ou criar o álbum
+                Album album = catalogoService.buscarAlbumPorNome(nomeAlbum);
+                if (album == null) {
+                    // Se o álbum não existe, criar um novo com dados básicos
+                    catalogoService.adicionarAlbumComDependencia(nomeAlbum, artista, ano, "Indefinido");
+                    album = catalogoService.buscarAlbumPorNome(nomeAlbum);
                 }
-                int ano = Integer.parseInt(campoAno.getText().trim());
-                catalogoService.adicionarMusica(new Musica(titulo, artista, nomeAlbum, ano));
-                limparCamposMusica(campoTituloMusica, campoArtista, comboAlbuns, campoAno);
-                // Atualizar combo de álbuns após adicionar música
-                atualizarComboAlbuns(comboAlbuns, catalogoService);
+                
+                if (album != null) {
+                    catalogoService.adicionarMusicaComDependencia(titulo, artista, ano, album);
+                    limparCamposMusica(campoTituloMusica, campoArtista, comboAlbuns, campoAno);
+                    // Atualizar combo de álbuns após adicionar música
+                    atualizarComboAlbuns(comboAlbuns, catalogoService);
+                } else {
+                    mostrarAlerta("Erro", "Não foi possível criar ou encontrar o álbum.");
+                }
             } catch (NumberFormatException ex) {
                 mostrarAlerta("Erro de Formato", "O ano deve ser um número válido (ex: 2023).");
             }
@@ -215,6 +234,9 @@ public class MusicaUI {
         modalEdicao.setScene(cenaModal);
         modalEdicao.showAndWait(); // Exibe e espera a modal ser fechada
     }    private static void atualizarComboAlbuns(ComboBox<String> comboAlbuns, CatalogoService catalogoService) {
+        // Recarregar dados para garantir que temos os álbuns mais recentes
+        catalogoService.recarregarDadosUsuarioLogado();
+        
         comboAlbuns.getItems().clear();
         catalogoService.getListaDeAlbuns().forEach(album -> {
             if (!comboAlbuns.getItems().contains(album.getTituloAlbum())) {
@@ -247,5 +269,12 @@ public class MusicaUI {
         dialogoConfirmacao.setContentText(mensagemConteudo);
         Optional<ButtonType> resultado = dialogoConfirmacao.showAndWait();
         return resultado.isPresent() && resultado.get() == ButtonType.OK;
+    }
+
+    // Método público para atualizar a combobox externamente
+    public static void atualizarComboAlbunsExternamente() {
+        if (comboAlbunsGlobal != null && catalogoServiceGlobal != null) {
+            atualizarComboAlbuns(comboAlbunsGlobal, catalogoServiceGlobal);
+        }
     }
 }

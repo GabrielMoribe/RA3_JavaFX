@@ -77,9 +77,8 @@ public class AlbumUI {
                 if (titulo.isEmpty() || artista.isEmpty() || campoAnoLancamento.getText().trim().isEmpty() || genero.isEmpty()) {
                     mostrarAlerta("Erro de Entrada", "Todos os campos são obrigatórios.");
                     return;
-                }
-                int ano = Integer.parseInt(campoAnoLancamento.getText().trim());
-                catalogoService.adicionarAlbum(new Album(titulo, artista, ano, genero));
+                }                int ano = Integer.parseInt(campoAnoLancamento.getText().trim());
+                catalogoService.adicionarAlbumComDependencia(titulo, artista, ano, genero);
                 limparCamposAlbum(campoTituloAlbum, campoArtistaPrincipal, campoAnoLancamento, campoGenero);
             } catch (NumberFormatException ex) {
                 mostrarAlerta("Erro de Formato", "O ano de lançamento deve ser um número válido.");

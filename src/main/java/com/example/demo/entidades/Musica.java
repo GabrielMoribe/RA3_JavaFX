@@ -3,28 +3,19 @@ package com.example.demo.entidades;
 import java.io.Serializable;
 
 public class Musica implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L; // Incrementando para nova versão
 
     private String tituloMusica;
     private String artista;
-    private String nomeAlbum;
     private int ano;
-    private String emailProprietario; // serve cm o id
+    private Album album; // Instância do álbum
 
-    public Musica(String tituloMusica, String artista, String nomeAlbum, int ano) {
+    // Construtor principal com injeção de dependência
+    public Musica(String tituloMusica, String artista, int ano, Album album) {
         this.tituloMusica = tituloMusica;
         this.artista = artista;
-        this.nomeAlbum = nomeAlbum;
         this.ano = ano;
-        this.emailProprietario = "";
-    }
-
-    public Musica(String tituloMusica, String artista, String nomeAlbum, int ano, String emailProprietario) {
-        this.tituloMusica = tituloMusica;
-        this.artista = artista;
-        this.nomeAlbum = nomeAlbum;
-        this.ano = ano;
-        this.emailProprietario = emailProprietario;
+        this.album = album;
     }
 
     public String getTituloMusica() {
@@ -41,34 +32,41 @@ public class Musica implements Serializable {
 
     public void setArtista(String artista) {
         this.artista = artista;
+    }    public Album getAlbum() {
+        return album;
     }
 
+    public void setAlbum(Album album) {
+        this.album = album;
+    }
+
+    // Métodos de compatibilidade para nome do álbum
     public String getNomeAlbum() {
-        return nomeAlbum;
+        return album != null ? album.getTituloAlbum() : "";
     }
 
     public void setNomeAlbum(String nomeAlbum) {
-        this.nomeAlbum = nomeAlbum;
+        // Este método será usado para compatibilidade, mas a injeção de dependência deveria ser preferida
+        // Se não há album, não podemos definir o nome
+        if (album != null) {
+            album.setTituloAlbum(nomeAlbum);
+        }
     }
 
     public int getAno() {
         return ano;
-    }
-
-    public void setAno(int ano) {
+    }    public void setAno(int ano) {
         this.ano = ano;
     }
 
+    // Método de compatibilidade para email do proprietário (via álbum)
     public String getEmailProprietario() {
-        return emailProprietario;
-    }
-
-    public void setEmailProprietario(String emailProprietario) {
-        this.emailProprietario = emailProprietario;
+        return album != null && album.getProprietario() != null ? album.getProprietario().getEmail() : "";
     }
 
     @Override
     public String toString() {
+        String nomeAlbum = album != null ? album.getTituloAlbum() : "Sem álbum";
         return tituloMusica + " - " + artista + " (Álbum: " + nomeAlbum + ", " + ano + ")";
     }
 }

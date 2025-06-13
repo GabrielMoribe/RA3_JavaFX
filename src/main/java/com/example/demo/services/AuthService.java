@@ -80,13 +80,8 @@ public class AuthService {
     }
     
     public static String criptografarSenha(String senha) {
-        return hashSenha(senha);
-    }
-    
-    public static boolean verificarSenha(String senhaTexto, String senhaHash) {
-        return hashSenha(senhaTexto).equals(senhaHash);
-    }
-    
+        return hashSenha(senha);    }
+
     public static void atualizarUsuarioLogado(User usuarioAtualizado) {
         if (usuarioLogado != null && usuarioAtualizado != null) {
             usuarioLogado = usuarioAtualizado;

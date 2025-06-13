@@ -3,28 +3,21 @@ package com.example.demo.entidades;
 import java.io.Serializable;
 
 public class Album implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L; // Incrementando para nova versão
 
     private String tituloAlbum;
     private String artistaPrincipal;
     private int anoLancamento;
     private String genero;
-    private String emailProprietario; // Email do usuário proprietário
+    private User proprietario; // Instância do usuário proprietário
 
-    public Album(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero) {
+    // Construtor principal com injeção de dependência
+    public Album(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero, User proprietario) {
         this.tituloAlbum = tituloAlbum;
         this.artistaPrincipal = artistaPrincipal;
         this.anoLancamento = anoLancamento;
         this.genero = genero;
-        this.emailProprietario = "";
-    }
-
-    public Album(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero, String emailProprietario) {
-        this.tituloAlbum = tituloAlbum;
-        this.artistaPrincipal = artistaPrincipal;
-        this.anoLancamento = anoLancamento;
-        this.genero = genero;
-        this.emailProprietario = emailProprietario;
+        this.proprietario = proprietario;
     }
 
     public String getTituloAlbum() {
@@ -57,14 +50,15 @@ public class Album implements Serializable {
 
     public void setGenero(String genero) {
         this.genero = genero;
+    }    public User getProprietario() {
+        return proprietario;
     }
 
+    public void setProprietario(User proprietario) {
+        this.proprietario = proprietario;
+    }    // Método de compatibilidade para email do proprietário
     public String getEmailProprietario() {
-        return emailProprietario;
-    }
-
-    public void setEmailProprietario(String emailProprietario) {
-        this.emailProprietario = emailProprietario;
+        return proprietario != null ? proprietario.getEmail() : "";
     }
 
     @Override

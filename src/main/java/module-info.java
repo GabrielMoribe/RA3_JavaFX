@@ -12,8 +12,6 @@ module com.example.demo {
     exports com.example.demo;
     exports com.example.demo.entidades;
     opens com.example.demo.entidades to javafx.fxml, java.base;
-    exports com.example.demo.controllers;
-    opens com.example.demo.controllers to javafx.fxml;
     exports com.example.demo.view;
     opens com.example.demo.view to javafx.fxml;
     exports com.example.demo.entidades.arquivo;

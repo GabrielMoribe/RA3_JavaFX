@@ -10,43 +10,46 @@ import javafx.collections.ObservableList;
 import com.example.demo.entidades.Album;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 public class CatalogoService {
     private final ObservableList<Musica> listaDeMusicas = FXCollections.observableArrayList();
     private final ObservableList<Album> listaDeAlbuns = FXCollections.observableArrayList();
     private final ObservableList<User> listaDeUsuarios = FXCollections.observableArrayList();    public CatalogoService() {
         carregarDados();
-    }
-    
-    private void carregarDados() {
-        // Carregar músicas do arquivo
-        ArrayList<Musica> musicasSalvas = MusicaFile.lerLista();
-        listaDeMusicas.setAll(musicasSalvas);
+    }    private void carregarDados() {
+        // Carregar usuários primeiro
+        ArrayList<User> usuariosSalvos = UserFile.lerLista();
+        listaDeUsuarios.setAll(usuariosSalvos);
 
-        // Carregar álbuns do arquivo
+        // Carregar álbuns - eles já devem ter as dependências de usuário
         ArrayList<Album> albunsSalvos = AlbumFile.lerLista();
         listaDeAlbuns.setAll(albunsSalvos);
 
-        // Carregar usuários do arquivo
-        ArrayList<User> usuariosSalvos = UserFile.lerLista();
-        listaDeUsuarios.setAll(usuariosSalvos);
-    }
-
-    public void filtrarDadosUsuarioLogado(String emailUsuario) {
-        // Filtrar músicas do usuário logado
-        ArrayList<Musica> todasMusicas = MusicaFile.lerLista();
-        ArrayList<Musica> musicasUsuario = todasMusicas.stream()
-                .filter(musica -> emailUsuario.equals(musica.getEmailProprietario()))
-                .collect(Collectors.toCollection(ArrayList::new));
-        listaDeMusicas.setAll(musicasUsuario);
-
+        // Carregar músicas - elas já devem ter as dependências de álbum
+        ArrayList<Musica> musicasSalvas = MusicaFile.lerLista();
+        listaDeMusicas.setAll(musicasSalvas);
+    }    public void filtrarDadosUsuarioLogado(String emailUsuario) {
         // Filtrar álbuns do usuário logado
         ArrayList<Album> todosAlbuns = AlbumFile.lerLista();
-        ArrayList<Album> albunsUsuario = todosAlbuns.stream()
-                .filter(album -> emailUsuario.equals(album.getEmailProprietario()))
-                .collect(Collectors.toCollection(ArrayList::new));
+        ArrayList<Album> albunsUsuario = new ArrayList<>();
+        for (Album album : todosAlbuns) {
+            if (album.getProprietario() != null && emailUsuario.equals(album.getProprietario().getEmail())) {
+                albunsUsuario.add(album);
+            }
+        }
         listaDeAlbuns.setAll(albunsUsuario);
+
+        // Filtrar músicas do usuário logado
+        ArrayList<Musica> todasMusicas = MusicaFile.lerLista();
+        ArrayList<Musica> musicasUsuario = new ArrayList<>();
+        for (Musica musica : todasMusicas) {
+            if (musica.getAlbum() != null && 
+                musica.getAlbum().getProprietario() != null && 
+                emailUsuario.equals(musica.getAlbum().getProprietario().getEmail())) {
+                musicasUsuario.add(musica);
+            }
+        }
+        listaDeMusicas.setAll(musicasUsuario);
     }
 
 
@@ -54,17 +57,20 @@ public class CatalogoService {
         // Métodos para Musicas
     public ObservableList<Musica> getListaDeMusicas() {
         return listaDeMusicas;
-    }
-    
-    public void adicionarMusica(Musica musica) {
+    }    public void adicionarMusica(Musica musica) {
         if (musica != null && musica.getTituloMusica() != null && !musica.getTituloMusica().trim().isEmpty()) {
-            // Definir o proprietário como o usuário logado
-            musica.setEmailProprietario(AuthService.getUsuarioLogado().getEmail());
-            
             if (!MusicaFile.verificarMusicaExistente(musica.getTituloMusica(), musica.getArtista())) {
                 listaDeMusicas.add(musica);
                 MusicaFile.adicionarMusica(musica);
             }
+        }
+    }
+    
+    // Método para adicionar música com injeção de dependência
+    public void adicionarMusicaComDependencia(String tituloMusica, String artista, int ano, Album album) {
+        if (album != null) {
+            Musica musica = criarMusica(tituloMusica, artista, ano, album);
+            adicionarMusica(musica);
         }
     }
 
@@ -78,17 +84,21 @@ public class CatalogoService {
     // Métodos para Albuns
     public ObservableList<Album> getListaDeAlbuns() {
         return listaDeAlbuns;
-    }
-    
-    public void adicionarAlbum(Album album) {
+    }    public void adicionarAlbum(Album album) {
         if (album != null && album.getTituloAlbum() != null && !album.getTituloAlbum().trim().isEmpty()) {
-            // Definir o proprietário como o usuário logado
-            album.setEmailProprietario(AuthService.getUsuarioLogado().getEmail());
-            
             if (!AlbumFile.verificarAlbumExistente(album.getTituloAlbum(), album.getArtistaPrincipal())) {
                 listaDeAlbuns.add(album);
                 AlbumFile.adicionarAlbum(album);
             }
+        }
+    }
+    
+    // Método para adicionar álbum com injeção de dependência
+    public void adicionarAlbumComDependencia(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero) {
+        User proprietario = AuthService.getUsuarioLogado();
+        if (proprietario != null) {
+            Album album = criarAlbum(tituloAlbum, artistaPrincipal, anoLancamento, genero, proprietario);
+            adicionarAlbum(album);
         }
     }
 
@@ -120,11 +130,11 @@ public class CatalogoService {
             listaDeUsuarios.remove(usuario);
             UserFile.deletarUsuario(usuario.getEmail());
         }
-    }
-
-    public void excluirTodasMusicasDoUsuario(String emailUsuario) {
+    }    public void excluirTodasMusicasDoUsuario(String emailUsuario) {
         // Remover da lista em memória
-        listaDeMusicas.removeIf(musica -> emailUsuario.equals(musica.getEmailProprietario()));
+        listaDeMusicas.removeIf(musica -> musica.getAlbum() != null && 
+                                        musica.getAlbum().getProprietario() != null &&
+                                        emailUsuario.equals(musica.getAlbum().getProprietario().getEmail()));
         
         // Atualizar arquivo
         MusicaFile.excluirMusicasDoUsuario(emailUsuario);
@@ -132,35 +142,28 @@ public class CatalogoService {
 
     public void excluirTodosAlbunsDoUsuario(String emailUsuario) {
         // Remover da lista em memória
-        listaDeAlbuns.removeIf(album -> emailUsuario.equals(album.getEmailProprietario()));
+        listaDeAlbuns.removeIf(album -> album.getProprietario() != null &&
+                                       emailUsuario.equals(album.getProprietario().getEmail()));
         
         // Atualizar arquivo
         AlbumFile.excluirAlbunsDoUsuario(emailUsuario);
-    }
-
-    public void atualizarNomeAlbumEmMusicas(String nomeAntigoAlbum, String novoNomeAlbum, String emailUsuario) {
+    }public void atualizarNomeAlbumEmMusicas(String nomeAntigoAlbum, String novoNomeAlbum, String emailUsuario) {
         // Atualizar músicas em memória
-        listaDeMusicas.stream()
-            .filter(musica -> emailUsuario.equals(musica.getEmailProprietario()))
-            .filter(musica -> nomeAntigoAlbum.equals(musica.getNomeAlbum()))
-            .forEach(musica -> musica.setNomeAlbum(novoNomeAlbum));
+        for (Musica musica : listaDeMusicas) {
+            if (emailUsuario.equals(musica.getEmailProprietario()) && 
+                musica.getAlbum() != null && 
+                nomeAntigoAlbum.equals(musica.getAlbum().getTituloAlbum())) {
+                musica.getAlbum().setTituloAlbum(novoNomeAlbum);
+            }
+        }
         
         // Salvar no arquivo
         MusicaFile.atualizarNomeAlbumEmMusicas(nomeAntigoAlbum, novoNomeAlbum, emailUsuario);
-    }
-
-    public void atualizarAlbum(Album album) {
+    }    public void atualizarAlbum(Album album) {
         if (album != null) {
             // O álbum já foi modificado na referência, apenas salva no arquivo
             AlbumFile.salvarLista(new ArrayList<>(listaDeAlbuns));
         }
-    }
-
-    public void atualizarDadosUsuarioLogado() {
-        String emailUsuario = AuthService.getUsuarioLogado().getEmail();
-        filtrarDadosUsuarioLogado(emailUsuario);
-    }    public void atualizarUsuario(User usuario) {
-        atualizarUsuario(usuario, null);
     }
     
     public void atualizarUsuario(User usuario, String emailOriginal) {
@@ -194,6 +197,40 @@ public class CatalogoService {
                 AuthService.getUsuarioLogado().getEmail().equals(emailParaBuscar)) {
                 AuthService.atualizarUsuarioLogado(usuario);
             }
+        }
+    }
+
+    // Métodos auxiliares para injeção de dependência
+    public User buscarUsuarioPorEmail(String email) {
+        return listaDeUsuarios.stream()                .filter(user -> user.getEmail().equals(email))
+                .findFirst()
+                .orElse(null);
+    }
+    
+    // Método para criar Album com injeção de dependência
+    public Album criarAlbum(String tituloAlbum, String artistaPrincipal, int anoLancamento, String genero, User proprietario) {
+        return new Album(tituloAlbum, artistaPrincipal, anoLancamento, genero, proprietario);
+    }
+    
+    // Método para criar Musica com injeção de dependência
+    public Musica criarMusica(String tituloMusica, String artista, int ano, Album album) {
+        return new Musica(tituloMusica, artista, ano, album);
+    }    // Método auxiliar para buscar álbum pelo nome para o usuário logado
+    public Album buscarAlbumPorNome(String nomeAlbum) {
+        User usuarioLogado = AuthService.getUsuarioLogado();
+        if (usuarioLogado == null) return null;
+        
+        return listaDeAlbuns.stream()
+                .filter(album -> album.getTituloAlbum().equals(nomeAlbum) && 
+                               album.getProprietario() != null &&
+                               album.getProprietario().getEmail().equals(usuarioLogado.getEmail()))
+                .findFirst()
+                .orElse(null);
+    }    // Método para recarregar apenas os dados do usuário logado
+    public void recarregarDadosUsuarioLogado() {
+        if (AuthService.getUsuarioLogado() != null) {
+            String emailUsuario = AuthService.getUsuarioLogado().getEmail();
+            filtrarDadosUsuarioLogado(emailUsuario);
         }
     }
 }
